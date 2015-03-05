@@ -1,7 +1,8 @@
 /* 
  * tsh - A tiny shell program with job control
  * 
- * <Put your name(s) and login ID(s) here>
+ * Xin Huang xyh1
+ * Leo Meister lpm2
  */
 
 #include <sys/types.h>
@@ -11,6 +12,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +56,12 @@ struct Job {                /* The job struct */
 };
 typedef struct Job *JobP;
 struct Job jobs[MAXJOBS];   /* The job list */
+
+struct path {
+	char *dir;
+	struct path *next;
+};
+struct path *env_path;
 
 /* Here are the prototypes for the functions that you will implement: */
 void eval(char *cmdline);
@@ -287,14 +295,52 @@ waitfg(pid_t pid)
  *   pathstr is the valid path from the environment.
  *
  * Effects:
- *   <Fill In>
+ *   [TODO]
  */
 void
 initpath(char *pathstr)
 {
-
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	pathstr = (char *)pathstr;
+	/* Linked list of directories on the path */
+	struct path *cur_dir = env_path; 
+	char *token;		/* holds a single directory from the path */
+	
+	/* A copy of the pathstr since strsep modifies its input directly */
+	char *token_path = malloc(sizeof(char) * strlen(pathstr) + 1);
+	/* Whether or not the current directory is specified on the PATH */
+	bool add_cur_dir = false;
+	
+	strcpy(token_path, pathstr);
+	
+	/* Check whether the current directory is on the path at the start */
+	if (token_path[0] == ':') {
+		token_path++;
+		add_cur_dir = true;
+	}
+	
+	/* Split the path by ":" and add the resulting strings to the list */
+	while ((token = strsep(&token_path, ":")) != NULL) {
+		
+		cur_dir = malloc(sizeof(struct path *));
+		cur_dir->dir = token;
+		cur_dir = cur_dir->next;
+		
+		/* Skip over consecutive ":" */
+		if (token_path[0] == ':') {
+			token_path++;
+			add_cur_dir = true;
+		}
+	}
+	
+	/* Add the current directory to the list if it was specified */
+	if (strcmp(pathstr, "") == 0 || pathstr[strlen(pathstr)] == ':' ||
+	 add_cur_dir) {
+	 	cur_dir = malloc(sizeof(struct path *));
+		cur_dir->dir = ".";
+	}
+	
+	free(token_path);
+	
+	return;
 }
 
 /*****************
