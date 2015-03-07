@@ -61,6 +61,7 @@ struct path {
 	char *dir;
 	struct path *next;
 };
+
 struct path *env_path;
 
 /* Here are the prototypes for the functions that you will implement: */
@@ -255,14 +256,27 @@ parseline(const char *cmdline, char **argv)
 /* 
  * builtin_cmd - If the user has typed a built-in command then execute
  *    it immediately.  
+ *
+ * Requires:
+ * 	Command argument
+ *
+ * Effects:
+ *	Checks if command argument is built in
+ *	Runs built in command arguments
+ *
  */
 int
 builtin_cmd(char **argv) 
-{
+{	
+	char *builtinCMDS [] = { "ab", "bc", "cd" };
+	unsigned int bicLen = sizeof(builtinCMDS)/sizeof(builtinCMDS[0]);
+	unsigned int i;
 
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	argv = (char **)argv;
-	return (0);     /* This is not a builtin command. */
+	for (i = 0; i < len, i++) {
+		if strcmp(builtinCMDS[i],argv) {
+			// Do some stuff here [TODO]
+		}
+	}
 }
 
 /* 
@@ -278,6 +292,11 @@ do_bgfg(char **argv)
 
 /* 
  * waitfg - Block until process pid is no longer the foreground process.
+ * Requires: 
+ * 	Process id
+ *
+ * Effects: 
+ * 	[TODO]
  */
 void
 waitfg(pid_t pid)
