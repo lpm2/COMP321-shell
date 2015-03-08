@@ -186,8 +186,39 @@ void
 eval(char *cmdline) 
 {
 
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	cmdline = (char *)cmdline;
+	/* string array to store command line arguments */
+	char **argv = malloc(sizeof(char **));
+	int argc;	/* number of command line arguments */
+	int bg_job;	/* whether the job is to run in the background */
+	
+	bg_job = parseline(cmdline, argv);
+	
+	/* [TODO] May need to check for argv != NULL
+	 */
+	if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
+		strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
+		
+		builtin_cmd(argv);
+	
+	} else {
+		
+		/* determine number of args, argc */
+		/* check whether it is a subdirectory as well */
+		argc = 0;
+		if (argv[0][0] == '.' || argv[0][0] == '/') {
+			
+		}
+		
+		/* determine the path, otherwise */
+		else if (env_path != NULL) {
+		
+		
+		}
+		
+		//execve();
+	}
+	
+	return;
 }
 
 /* 
