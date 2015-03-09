@@ -1,6 +1,7 @@
 *.svn
 core.factors.*
 *.~
+*.DS_Store
 
 # Object files
 csapp.o
