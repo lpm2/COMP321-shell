@@ -299,32 +299,23 @@ parseline(const char *cmdline, char **argv)
 int
 builtin_cmd(char **argv) 
 {	
-	char *builtinCMDS [] = {"quit", "bg", "fg", "jobs"};
-	unsigned int bicLen = sizeof(builtinCMDS)/sizeof(builtinCMDS[0]);
-	unsigned int i, j;
-
-	if (
+	unsigned int j;
 	
-	for (i = 0; i < bicLen; i++) {
-		if (strcmp(builtinCMDS[i],argv[0])) {
-			switch(i) {
-				case 0: // quit
-					exit(0);
-				case 1: // bg
-					//do_bgfg(argv[1]); // TODO, might need to check if jid or pid?
-				case 2: // fg
-					//do_bgfg(argv[1]); 
-				case 3: // jobs
-					for (j = 0; j < MAXJOBS; j++) {
-						if (jobs[j].pid != 0 && jobs[j].state == BG ){
-							printf("(%d) \n", (int)jobs[j].pid);
-						}
-					}
-			} // end switch
-		} else {
-			printf("Error: No built in command, %s, found!", argv[0]);
-		} // end if 
-	} // end for
+	if (argv[0] == "quit")
+		exit(0);
+	else if (argv[0] == "bg")
+		exit(0); // TODO
+	else if (argv[0] == "fg")
+		exit(0); // TODO
+	else if (argv[0] == "jobs") {
+		for (j = 0; j < MAXJOBS; j++) {
+			if (jobs[j].pid != 0 && jobs[j].state == BG) {
+				printf("(%d) \n", (int)jobs[j].pid);
+			}
+		}
+	}
+	else
+		printf("Error: No built in command, %s, found!", argv[0]);
 	
 	return 0;
 }
