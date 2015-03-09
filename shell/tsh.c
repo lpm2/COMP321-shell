@@ -303,16 +303,15 @@ builtin_cmd(char **argv)
 	unsigned int bicLen = sizeof(builtinCMDS)/sizeof(builtinCMDS[0]);
 	unsigned int i, j;
 
-	for (i = 0; i < bicLen, i++) {
-		if strcmp(builtinCMDS[i],argv[0]) {
-			// Do some stuff here [TODO]
+	for (i = 0; i < bicLen; i++) {
+		if (strcmp(builtinCMDS[i],argv[0])) {
 			switch(i) {
 				case 0: // quit
 					exit(0);
 				case 1: // bg
-					do_bgfg(argv[1]); // TODO, might need to check if jid or pid?
+					//do_bgfg(argv[1]); // TODO, might need to check if jid or pid?
 				case 2: // fg
-					do_bgfg(argv[1]); 
+					//do_bgfg(argv[1]); 
 				case 3: // jobs
 					for (j = 0; j < MAXJOBS; j++) {
 						if (jobs[j].pid != 0) && jobs[j].state == BG {
