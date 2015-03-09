@@ -44,8 +44,8 @@
 
 extern char **environ;      /* defined in libc */
 char prompt[] = "tsh> ";    /* command line prompt (DO NOT CHANGE) */
-int verbose = 1;            /* if true, print additional output */
-int nextjid = 0;            /* next job ID to allocate */
+int verbose = 0;            /* if true, print additional output */
+int nextjid = 1;            /* next job ID to allocate */
 char sbuf[MAXLINE];         /* for composing sprintf messages */
 
 struct Job {                /* The job struct */
@@ -150,7 +150,6 @@ main(int argc, char **argv)
 
 	/* Execute the shell's read/eval loop. */
 	while (1) {
-
 		/* Read the command line. */
 		if (emit_prompt) {
 			printf("%s", prompt);
@@ -218,18 +217,20 @@ eval(char *cmdline)
 			 */
 			if ((pid = fork()) == 0) {
 				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-				setpgid(0, 0);
 				//addjob(jobs, getpid(), FG, cmdline);
-				execve(argv[0], argv, environ);
 				if (!bg_job) {
-					waitfg(getpid());
+					setpgid(0, 0);
 				}
+				execve(argv[0], argv, environ);
 			}
-			else {
-				if (bg_job)
+			//else {
+				if (bg_job) {
 					addjob(jobs, pid, BG, cmdline);
+				}
 				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-			}
+				if (!bg_job)
+					waitfg(pid);
+			//}
 		}
 		
 		/* determine the path, otherwise */
@@ -367,7 +368,7 @@ waitfg(pid_t pid)
 
 	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
 	pid = (pid_t)pid;
-// 	
+	sleep(3);
 // 	while (1) {
 // 		printf("before segfault");
 // 		sleep(1);
@@ -462,9 +463,11 @@ sigchld_handler(int sig)
 	pid_t pid;
 	sig = (int)sig;
 	
-	
+	// if sig isn't a sigstop/sigtstp, only when the child terminated
 	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
-		printf("Handler reaped child %d\n", (int)pid);
+		
+		if (verbose)
+			printf("Handler reaped child %d\n", (int)pid);
 		
 		/* If the process is in the jobs list, remove it */
 		if (getjobpid(jobs, pid) != NULL)
