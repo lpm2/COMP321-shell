@@ -314,15 +314,17 @@ builtin_cmd(char **argv)
 					//do_bgfg(argv[1]); 
 				case 3: // jobs
 					for (j = 0; j < MAXJOBS; j++) {
-						if (jobs[j].pid != 0) && jobs[j].state == BG {
+						if (jobs[j].pid != 0 && jobs[j].state == BG ){
 							printf("(%d) \n", (int)jobs[j].pid);
 						}
 					}
 			} // end switch
-		else
+		} else {
 			printf("Error: No built in command, %s, found!", argv[0]);
 		} // end if 
 	} // end for
+	
+	return 0;
 }
 
 /* 
