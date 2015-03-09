@@ -44,7 +44,7 @@
 
 extern char **environ;      /* defined in libc */
 char prompt[] = "tsh> ";    /* command line prompt (DO NOT CHANGE) */
-int verbose = 0;            /* if true, print additional output */
+int verbose = 1;            /* if true, print additional output */
 int nextjid = 1;            /* next job ID to allocate */
 char sbuf[MAXLINE];         /* for composing sprintf messages */
 
@@ -331,45 +331,58 @@ waitfg(pid_t pid)
 void
 initpath(char *pathstr)
 {
-	/* Linked list of directories on the path */
-	struct path *cur_dir = env_path; 
-	char *token;		/* holds a single directory from the path */
-	
-	/* A copy of the pathstr since strsep modifies its input directly */
-	char *token_path = malloc(sizeof(char) * strlen(pathstr) + 1);
-	/* Whether or not the current directory is specified on the PATH */
-	bool add_cur_dir = false;
-	
-	strcpy(token_path, pathstr);
-	
-	/* Check whether the current directory is on the path at the start */
-	if (token_path[0] == ':') {
-		token_path++;
-		add_cur_dir = true;
+// 
+// 	if (pathstr == NULL) {
+// 		printf("The path string is null\n");
+// 	}
+	if (verbose) {
+		printf("In initpath!\n");
+		printf("%s\n", pathstr);	
 	}
-	
-	/* Split the path by ":" and add the resulting strings to the list */
-	while ((token = strsep(&token_path, ":")) != NULL) {
-		
-		cur_dir = malloc(sizeof(struct path *));
-		cur_dir->dir = token;
-		cur_dir = cur_dir->next;
-		
-		/* Skip over consecutive ":" */
-		if (token_path[0] == ':') {
-			token_path++;
-			add_cur_dir = true;
-		}
-	}
-	
-	/* Add the current directory to the list if it was specified */
-	if (strcmp(pathstr, "") == 0 || pathstr[strlen(pathstr)] == ':' ||
-	 add_cur_dir) {
-	 	cur_dir = malloc(sizeof(struct path *));
-		cur_dir->dir = ".";
-	}
-	
-	free(token_path);
+// 	/* Linked list of directories on the path */
+// 	struct path *cur_dir = env_path; 
+// 	char *token;		/* holds a single directory from the path */
+// 	
+// 	/* A copy of the pathstr since strsep modifies its input directly */
+// 	char *token_path = malloc(sizeof(char) * strlen(pathstr) + 1);
+// 	printf("%lu\n", strlen(pathstr));
+// 	//token_path[sizeof(char) * strlen(pathstr)] = "\0";
+// 	/* Whether or not the current directory is specified on the PATH */
+// 	bool add_cur_dir = false;
+// 	
+// 	strcpy(token_path, pathstr);
+// 
+// 	printf("%s\n", token_path);
+// 	printf("%c\n", *(token_path+1));
+// 	printf("Good\n");
+// 	/* Check whether the current directory is on the path at the start */
+// 	if (token_path[0] == ':') {
+// 		token_path++;
+// 		add_cur_dir = true;
+// 	}
+// 	
+// 	/* Split the path by ":" and add the resulting strings to the list */
+// 	while ((token = strsep(&token_path, ":")) != NULL) {
+// 		
+// 		cur_dir = malloc(sizeof(struct path *));
+// 		cur_dir->dir = token;
+// 		cur_dir = cur_dir->next;
+// 		
+// 		/* Skip over consecutive ":" */
+// 		if (token_path[0] == ':') {
+// 			token_path++;
+// 			add_cur_dir = true;
+// 		}
+// 	}
+// 	
+// 	/* Add the current directory to the list if it was specified */
+// 	if (strcmp(pathstr, "") == 0 || pathstr[strlen(pathstr)] == ':' ||
+// 	 add_cur_dir) {
+// 	 	cur_dir = malloc(sizeof(struct path *));
+// 		cur_dir->dir = ".";
+// 	}
+// 	
+// 	free(token_path);
 	
 	return;
 }
