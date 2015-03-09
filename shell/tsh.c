@@ -189,8 +189,10 @@ eval(char *cmdline)
 
 	/* string array to store command line arguments */
 	char **argv = malloc(sizeof(char **));
-	int argc;	/* number of command line arguments */
+	//int argc = 0;	/* number of command line arguments */
 	int bg_job;	/* whether the job is to run in the background */
+	int pid;
+	int status;
 	
 	bg_job = parseline(cmdline, argv);
 	
@@ -203,11 +205,16 @@ eval(char *cmdline)
 	
 	} else {
 		
-		/* determine number of args, argc */
+		/* determine number of args, argc? */
 		/* check whether it is a subdirectory as well */
-		argc = 0;
+		
 		if (argv[0][0] == '.' || argv[0][0] == '/') {
-			
+			if ((pid = fork()) == 0) {
+				execve(argv[0], argv, environ);
+				if (!bg_job) {
+					waitpid(pid, &status, 0);
+				}
+			}
 		}
 		
 		/* determine the path, otherwise */
