@@ -303,6 +303,8 @@ builtin_cmd(char **argv)
 	unsigned int bicLen = sizeof(builtinCMDS)/sizeof(builtinCMDS[0]);
 	unsigned int i, j;
 
+	if (
+	
 	for (i = 0; i < bicLen; i++) {
 		if (strcmp(builtinCMDS[i],argv[0])) {
 			switch(i) {
