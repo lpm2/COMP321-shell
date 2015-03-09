@@ -301,13 +301,13 @@ builtin_cmd(char **argv)
 {	
 	unsigned int j;
 	
-	if (argv[0] == "quit")
+	if (strcmp(argv[0], "quit") == 0)
 		exit(0);
-	else if (argv[0] == "bg")
+	else if (strcmp(argv[0], "bg") == 0)
 		exit(0); // TODO
-	else if (argv[0] == "fg")
+	else if (strcmp(argv[0], "fg") == 0)
 		exit(0); // TODO
-	else if (argv[0] == "jobs") {
+	else if (strcmp(argv[0], "jobs") == 0) {
 		for (j = 0; j < MAXJOBS; j++) {
 			if (jobs[j].pid != 0 && jobs[j].state == BG) {
 				printf("(%d) \n", (int)jobs[j].pid);
