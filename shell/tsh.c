@@ -45,7 +45,7 @@
 extern char **environ;      /* defined in libc */
 char prompt[] = "tsh> ";    /* command line prompt (DO NOT CHANGE) */
 int verbose = 1;            /* if true, print additional output */
-int nextjid = 1;            /* next job ID to allocate */
+int nextjid = 0;            /* next job ID to allocate */
 char sbuf[MAXLINE];         /* for composing sprintf messages */
 
 struct Job {                /* The job struct */
@@ -189,10 +189,9 @@ eval(char *cmdline)
 
 	/* string array to store command line arguments */
 	char **argv = malloc(sizeof(char **));
-	//int argc = 0;	/* number of command line arguments */
 	int bg_job;	/* whether the job is to run in the background */
-	int pid;
-	int status;
+	int pid;	/* the process id returned from fork */
+	sigset_t mask;
 	
 	bg_job = parseline(cmdline, argv);
 	
@@ -205,25 +204,41 @@ eval(char *cmdline)
 	
 	} else {
 		
-		/* determine number of args, argc? */
-		/* check whether it is a subdirectory as well */
 		
+		/* Block sigchld signals in the parent */
+		sigemptyset(&mask);
+		sigaddset(&mask, SIGCHLD);
+		sigprocmask(SIG_BLOCK, &mask, NULL);
+		
+		/* check whether it is a subdirectory as well */
 		if (argv[0][0] == '.' || argv[0][0] == '/') {
+			
+			/* add the child to the jobs list, unblock the SIGCHLD 	
+			 * signal then execute
+			 */
 			if ((pid = fork()) == 0) {
+				sigprocmask(SIG_UNBLOCK, &mask, NULL);
+				setpgid(0, 0);
+				//addjob(jobs, getpid(), FG, cmdline);
 				execve(argv[0], argv, environ);
 				if (!bg_job) {
-					waitpid(pid, &status, 0);
+					waitfg(getpid());
 				}
+			}
+			else {
+				if (bg_job)
+					addjob(jobs, pid, BG, cmdline);
+				sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			}
 		}
 		
 		/* determine the path, otherwise */
 		else if (env_path != NULL) {
 		
-		
+			//execvp()?;
 		}
 		
-		//execve();
+		
 	}
 	
 	return;
@@ -352,6 +367,11 @@ waitfg(pid_t pid)
 
 	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
 	pid = (pid_t)pid;
+// 	
+// 	while (1) {
+// 		printf("before segfault");
+// 		sleep(1);
+// 	}
 }
 
 /* 
@@ -367,14 +387,15 @@ waitfg(pid_t pid)
 void
 initpath(char *pathstr)
 {
+	pathstr = (char *)pathstr;
 // 
 // 	if (pathstr == NULL) {
 // 		printf("The path string is null\n");
 // 	}
-	if (verbose) {
-		printf("In initpath!\n");
-		printf("%s\n", pathstr);	
-	}
+// 	if (verbose) {
+// 		printf("In initpath!\n");
+// 		printf("%s\n", pathstr);	
+// 	}
 // 	/* Linked list of directories on the path */
 // 	struct path *cur_dir = env_path; 
 // 	char *token;		/* holds a single directory from the path */
@@ -437,9 +458,20 @@ initpath(char *pathstr)
 void
 sigchld_handler(int sig) 
 {
-
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
+	
+	pid_t pid;
 	sig = (int)sig;
+	
+	
+	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
+		printf("Handler reaped child %d\n", (int)pid);
+		
+		/* If the process is in the jobs list, remove it */
+		if (getjobpid(jobs, pid) != NULL)
+			deletejob(jobs, pid);
+	}
+		
+	return;
 }
 
 /* 
