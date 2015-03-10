@@ -217,20 +217,24 @@ eval(char *cmdline)
 			 */
 			if ((pid = fork()) == 0) {
 				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-				//addjob(jobs, getpid(), FG, cmdline);
-				if (!bg_job) {
+				if (!bg_job) 
 					setpgid(0, 0);
-				}
+				
 				execve(argv[0], argv, environ);
 			}
-			//else {
-				if (bg_job) {
-					addjob(jobs, pid, BG, cmdline);
-				}
-				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-				if (!bg_job)
-					waitfg(pid);
-			//}
+
+			if (bg_job) {
+				addjob(jobs, pid, BG, cmdline);
+				printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
+			}
+			else
+				addjob(jobs, pid, FG, cmdline);
+			
+			sigprocmask(SIG_UNBLOCK, &mask, NULL);
+			
+			if (!bg_job)
+				waitfg(pid);
+				
 		}
 		
 		/* determine the path, otherwise */
@@ -241,7 +245,7 @@ eval(char *cmdline)
 		
 		
 	}
-	
+
 	return;
 }
 
@@ -333,7 +337,7 @@ builtin_cmd(char **argv)
 	else if (strcmp(argv[0], "jobs") == 0) {
 		for (j = 0; j < MAXJOBS; j++) {
 			if (jobs[j].pid != 0 && jobs[j].state == BG) {
-				printf("(%d) \n", (int)jobs[j].pid);
+				printf("[%d] (%d) Running %s", jobs[j].jid, jobs[j].pid, jobs[j].cmdline);
 			}
 		}
 	}
@@ -366,13 +370,10 @@ void
 waitfg(pid_t pid)
 {
 
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	pid = (pid_t)pid;
-	sleep(3);
-// 	while (1) {
-// 		printf("before segfault");
-// 		sleep(1);
-// 	}
+	/* Sleep while the given process is still active in the foreground */
+	while (fgpid(jobs) == pid)
+		sleep(1);
+	
 }
 
 /* 
@@ -470,8 +471,7 @@ sigchld_handler(int sig)
 			printf("Handler reaped child %d\n", (int)pid);
 		
 		/* If the process is in the jobs list, remove it */
-		if (getjobpid(jobs, pid) != NULL)
-			deletejob(jobs, pid);
+		deletejob(jobs, pid);
 	}
 		
 	return;
