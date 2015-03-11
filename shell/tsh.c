@@ -194,57 +194,56 @@ eval(char *cmdline)
 	
 	bg_job = parseline(cmdline, argv);
 	
-	/* [TODO] May need to check for argv != NULL
-	 */
-	if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
-		strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
-		
-		builtin_cmd(argv);
-	
-	} else {
-		
-		
-		/* Block sigchld signals in the parent */
-		sigemptyset(&mask);
-		sigaddset(&mask, SIGCHLD);
-		sigprocmask(SIG_BLOCK, &mask, NULL);
-		
-		/* check whether it is a subdirectory as well */
-		if (argv[0][0] == '.' || argv[0][0] == '/') {
+	if (argv[0] != NULL) {
+		if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
+			strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
 			
-			/* add the child to the jobs list, unblock the SIGCHLD 	
-			 * signal then execute
-			 */
-			if ((pid = fork()) == 0) {
-				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-				if (!bg_job) 
-					setpgid(0, 0);
+			builtin_cmd(argv);
+		
+		} 
+		else {
+			/* Block sigchld signals in the parent */
+			sigemptyset(&mask);
+			sigaddset(&mask, SIGCHLD);
+			sigprocmask(SIG_BLOCK, &mask, NULL);
+			
+			/* check whether it is a subdirectory as well */
+			if (argv[0][0] == '.' || argv[0][0] == '/') {
 				
-				execve(argv[0], argv, environ);
-			}
+				/* add the child to the jobs list, unblock the SIGCHLD 	
+				 * signal then execute
+				 */
+				if ((pid = fork()) == 0) {
+					sigprocmask(SIG_UNBLOCK, &mask, NULL);
+					if (!bg_job) 
+						setpgid(0, 0);
+					
+					execve(argv[0], argv, environ);
+				}
 
-			if (bg_job) {
-				addjob(jobs, pid, BG, cmdline);
-				printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
-			}
-			else
-				addjob(jobs, pid, FG, cmdline);
-			
-			sigprocmask(SIG_UNBLOCK, &mask, NULL);
-			
-			if (!bg_job)
-				waitfg(pid);
+				if (bg_job) {
+					addjob(jobs, pid, BG, cmdline);
+					printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
+				}
+				else
+					addjob(jobs, pid, FG, cmdline);
 				
-		}
-		
-		/* determine the path, otherwise */
-		else if (env_path != NULL) {
-		
-			//execvp()?;
-		}
-		
-		
-	}
+				sigprocmask(SIG_UNBLOCK, &mask, NULL);
+				
+				if (!bg_job)
+					waitfg(pid);
+					
+			}
+			
+			/* determine the path, otherwise */
+			else if (env_path != NULL) {
+			
+				//execvp()?;
+			}
+			
+			
+		} // end else
+	} // end if null
 
 	return;
 }
