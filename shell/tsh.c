@@ -383,7 +383,7 @@ do_bgfg(char **argv)
 	if (bgfgJob == NULL) {
 		if (pj_id_flag == 0)
 			printf("(%s): No such process\n", argv[1]);
-		elif (pj_id_flag == 1)
+		else if (pj_id_flag == 1)
 			printf("%s: No such job\n", argv[1]);
 		else
 			printf("%s: argument must be a PID or %%jobid\n", argv[0]);
