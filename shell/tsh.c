@@ -359,13 +359,13 @@ void
 do_bgfg(char **argv) 
 {
 	assert(strcmp(argv[0],"bg") == 0 || strcmp(argv[0],"fg") == 0);
-	assert(argv[1] != NULL);
+	if (verbose && argv[1] == NULL)
+		printf("%s invalid, no PID or JID argument provided", argv[0]);
 	
 	JobP bgfgJob;
 
 	if (strchr(argv[1],'%') == NULL)
 		bgfgJob = getjobpid(jobs, atoi(argv[1]));
-
 	else {
 		const char ch = '%';
    		char *ret;
