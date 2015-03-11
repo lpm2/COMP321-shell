@@ -364,12 +364,14 @@ do_bgfg(char **argv)
 		return;
 	}
 	
-	char pj_id_flag = 3;
+	char pj_id_flag;
 	JobP bgfgJob;
 
 	if (strchr(argv[1],'%') == NULL) {
-		bgfgJob = getjobpid(jobs, atoi(argv[1]));
-		pj_id_flag = 0;
+		int pid = atoi(argv[1]);
+		bgfgJob = getjobpid(jobs, pid);
+		if (pid != 0)
+			pj_id_flag = 0;
 	}
 	else {
 		const char ch = '%';
