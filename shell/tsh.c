@@ -337,7 +337,8 @@ builtin_cmd(char **argv)
 	else if (strcmp(argv[0], "jobs") == 0) {
 		for (j = 0; j < MAXJOBS; j++) {
 			if (jobs[j].pid != 0 && jobs[j].state == BG) {
-				printf("[%d] (%d) Running %s", jobs[j].jid, jobs[j].pid, jobs[j].cmdline);
+				printf("[%d] (%d) Running %s", jobs[j].jid, jobs[j].pid, 
+					jobs[j].cmdline);
 			}  // end if
 		} // end for
 	} // end if jobs
@@ -522,14 +523,18 @@ sigchld_handler(int sig)
 void
 sigint_handler(int sig) 
 {	
+	assert(sig == SIGINT);
 	
 	if (sig == SIGINT) {
 		pid_t fg_pid = fgpid(jobs);
+		if (fgPid == NULL)
+			return;
+		
 		char str[SIG2STR_MAX];
 		sig2str(sig, str);
+		kill(-getpgid(fg_pid), sig);
 		printf("Job [%d] (%d) terminated by signal SIG%s\n", 
 			getjobpid(jobs, fg_pid)->jid, fg_pid, str);
-		kill(-getpgid(fg_pid), sig);
 	}
 }
 
@@ -542,8 +547,16 @@ void
 sigtstp_handler(int sig) 
 {
 
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	sig = (int)sig;
+	assert(sig == SIGTSTP);
+	pid_t fgPid = fgpid(jobs);
+	if (fgPid == NULL)
+		return;
+
+	JobP fgJob = getjobpid(jobs, fgPid);	
+	kill(-fgJob->pid, sig);
+	fgJob->state = ST;
+	printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
+		pid2jid(fgJob->pid), fgJob->pid);
 }
 
 /*********************
