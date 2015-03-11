@@ -364,25 +364,29 @@ do_bgfg(char **argv)
 		return;
 	}
 	
-	char jid_flag = 0;
+	char pj_id_flag;
 	JobP bgfgJob;
 
-	if (strchr(argv[1],'%') == NULL)
+	if (strchr(argv[1],'%') == NULL) {
 		bgfgJob = getjobpid(jobs, atoi(argv[1]));
+		pj_id_flag = 0;
+	}
 	else {
 		const char ch = '%';
    		char *ret;
    		ret = strchr(argv[1], ch);
 		int jid = atoi(ret+1);
 		bgfgJob = getjobjid(jobs, jid);
-		jid_flag = 1;
+		pj_id_flag = 1;
 	}
 
 	if (bgfgJob == NULL) {
-		if (jid_flag)
+		if (pj_id_flag == 0)
 			printf("(%s): No such process\n", argv[1]);
-		else
+		elif (pj_id_flag == 1)
 			printf("%s: No such job\n", argv[1]);
+		else
+			printf("%s: argument must be a PID or %%jobid\n", argv[0]);
 		return;
 	}
 
