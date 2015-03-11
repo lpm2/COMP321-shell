@@ -465,13 +465,22 @@ sigchld_handler(int sig)
 	sig = (int)sig;
 	
 	// if sig isn't a sigstop/sigtstp, only when the child terminated
-	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
+	if (sig == SIGCHLD) {
 		
-		if (verbose)
-			printf("Handler reaped child %d\n", (int)pid);
+		while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
 		
-		/* If the process is in the jobs list, remove it */
-		deletejob(jobs, pid);
+			if (verbose)
+				printf("Handler reaped child %d\n", (int)pid);
+		
+			/* If the process is in the jobs list, remove it */
+			deletejob(jobs, pid);
+		}
+		
+	} else if (sig == SIGSTOP || sig == SIGTSTP) {
+	
+	
+	} else if (sig == SIGINT) {
+		printf("SIGINT in child handler\n");
 	}
 		
 	return;
@@ -484,10 +493,16 @@ sigchld_handler(int sig)
  */
 void
 sigint_handler(int sig) 
-{
-
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	sig = (int)sig;
+{	
+	
+	if (sig == SIGINT) {
+		pid_t fg_pid = fgpid(jobs);
+		char str[SIG2STR_MAX];
+		sig2str(sig, str);
+		printf("Job [%d] (%d) terminated by signal SIG%s\n", 
+			getjobpid(jobs, fg_pid)->jid, fg_pid, str);
+		kill(-getpgid(fg_pid), sig);
+	}
 }
 
 /*
