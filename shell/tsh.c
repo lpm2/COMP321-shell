@@ -194,56 +194,55 @@ eval(char *cmdline)
 	
 	bg_job = parseline(cmdline, argv);
 	
-	if (argv[0] != NULL) {
-		if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
-			strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
-			
-			builtin_cmd(argv);
+	if (argv[0] == NULL)
+		return;
+	// else if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
+	// 	strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
 		
-		} 
-		else {
-			/* Block sigchld signals in the parent */
-			sigemptyset(&mask);
-			sigaddset(&mask, SIGCHLD);
-			sigprocmask(SIG_BLOCK, &mask, NULL);
+	// 	builtin_cmd(argv);
+	// } 
+	else if (!builtin_cmd(argv) {
+		/* Block sigchld signals in the parent */
+		sigemptyset(&mask);
+		sigaddset(&mask, SIGCHLD);
+		sigprocmask(SIG_BLOCK, &mask, NULL);
+		
+		/* check whether it is a subdirectory as well */
+		if (argv[0][0] == '.' || argv[0][0] == '/') {
 			
-			/* check whether it is a subdirectory as well */
-			if (argv[0][0] == '.' || argv[0][0] == '/') {
-				
-				/* add the child to the jobs list, unblock the SIGCHLD 	
-				 * signal then execute
-				 */
-				if ((pid = fork()) == 0) {
-					sigprocmask(SIG_UNBLOCK, &mask, NULL);
-					if (!bg_job) 
-						setpgid(0, 0);
-					
-					execve(argv[0], argv, environ);
-				}
-
-				if (bg_job) {
-					addjob(jobs, pid, BG, cmdline);
-					printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
-				}
-				else
-					addjob(jobs, pid, FG, cmdline);
-				
+			/* add the child to the jobs list, unblock the SIGCHLD 	
+			 * signal then execute
+			 */
+			if ((pid = fork()) == 0) {
 				sigprocmask(SIG_UNBLOCK, &mask, NULL);
+				if (!bg_job) 
+					setpgid(0, 0);
 				
-				if (!bg_job)
-					waitfg(pid);
-					
+				execve(argv[0], argv, environ);
 			}
-			
-			/* determine the path, otherwise */
-			else if (env_path != NULL) {
-			
-				//execvp()?;
+
+			// TODO Need command not found
+
+			if (bg_job) {
+				addjob(jobs, pid, BG, cmdline);
+				printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
 			}
+			else
+				addjob(jobs, pid, FG, cmdline);
 			
+			sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			
-		} // end else
-	} // end if null
+			if (!bg_job)
+				waitfg(pid);
+				
+		}
+
+		/* determine the path, otherwise */
+		else if (env_path != NULL) {
+		
+			//execvp()?;
+		}
+	} // end else
 
 	return;
 }
@@ -329,10 +328,14 @@ builtin_cmd(char **argv)
 	
 	if (strcmp(argv[0], "quit") == 0)
 		exit(0);
-	else if (strcmp(argv[0], "bg") == 0)
+	else if (strcmp(argv[0], "bg") == 0) {
 		do_bgfg(argv);
-	else if (strcmp(argv[0], "fg") == 0)
+		return(1);
+	}
+	else if (strcmp(argv[0], "fg") == 0) {
 		do_bgfg(argv);
+		return(1);
+	}
 	else if (strcmp(argv[0], "jobs") == 0) {
 		for (j = 0; j < MAXJOBS; j++) {
 			if (jobs[j].pid != 0 && jobs[j].state == BG) {
@@ -340,11 +343,13 @@ builtin_cmd(char **argv)
 					jobs[j].cmdline);
 			}  // end if
 		} // end for
+		return (1);
 	} // end if jobs
-	else
-		printf("Error: No built in command, %s, found!", argv[0]);
-	
-	return (0);
+	else {
+		if (verbose)
+			printf("Error: No built in command, %s, found!", argv[0]);
+		return(0);
+	}
 }
 
 /* 
