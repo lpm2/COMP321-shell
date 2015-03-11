@@ -331,20 +331,20 @@ builtin_cmd(char **argv)
 	if (strcmp(argv[0], "quit") == 0)
 		exit(0);
 	else if (strcmp(argv[0], "bg") == 0)
-		exit(0); // TODO
+		do_bgfg(argv);
 	else if (strcmp(argv[0], "fg") == 0)
-		exit(0); // TODO
+		do_bgfg(argv);
 	else if (strcmp(argv[0], "jobs") == 0) {
 		for (j = 0; j < MAXJOBS; j++) {
 			if (jobs[j].pid != 0 && jobs[j].state == BG) {
 				printf("[%d] (%d) Running %s", jobs[j].jid, jobs[j].pid, jobs[j].cmdline);
-			}
-		}
-	}
+			}  // end if
+		} // end for
+	} // end if jobs
 	else
 		printf("Error: No built in command, %s, found!", argv[0]);
 	
-	return 0;
+	return (0);
 }
 
 /* 
