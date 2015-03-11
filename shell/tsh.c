@@ -364,6 +364,7 @@ do_bgfg(char **argv)
 		return;
 	}
 	
+	char jid_flag = 0;
 	JobP bgfgJob;
 
 	if (strchr(argv[1],'%') == NULL)
@@ -374,10 +375,14 @@ do_bgfg(char **argv)
    		ret = strchr(argv[1], ch);
 		int jid = atoi(ret+1);
 		bgfgJob = getjobjid(jobs, jid);
+		jid_flag = 1;
 	}
 
 	if (bgfgJob == NULL) {
-		printf("(%s): No such process\n", argv[1]);
+		if (jid_flag)
+			printf("(%s): No such process\n", argv[1]);
+		else
+			printf("%s: No such job\n", argv[1]);
 		return;
 	}
 
