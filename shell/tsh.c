@@ -527,7 +527,7 @@ sigint_handler(int sig)
 	
 	if (sig == SIGINT) {
 		pid_t fg_pid = fgpid(jobs);
-		if (fgPid == NULL)
+		if (fg_pid == NULL)
 			return;
 		
 		char str[SIG2STR_MAX];
@@ -548,11 +548,11 @@ sigtstp_handler(int sig)
 {
 
 	assert(sig == SIGTSTP);
-	pid_t fgPid = fgpid(jobs);
-	if (fgPid == NULL)
+	pid_t fg_pid = fgpid(jobs);
+	if (fg_pid == NULL)
 		return;
 
-	JobP fgJob = getjobpid(jobs, fgPid);	
+	JobP fgJob = getjobpid(jobs, fg_pid);	
 	kill(-fgJob->pid, sig);
 	fgJob->state = ST;
 	printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
