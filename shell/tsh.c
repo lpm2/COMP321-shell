@@ -331,20 +331,21 @@ builtin_cmd(char **argv)
 	if (strcmp(argv[0], "quit") == 0)
 		exit(0);
 	else if (strcmp(argv[0], "bg") == 0)
-		exit(0); // TODO
+		do_bgfg(argv);
 	else if (strcmp(argv[0], "fg") == 0)
-		exit(0); // TODO
+		do_bgfg(argv);
 	else if (strcmp(argv[0], "jobs") == 0) {
 		for (j = 0; j < MAXJOBS; j++) {
 			if (jobs[j].pid != 0 && jobs[j].state == BG) {
-				printf("[%d] (%d) Running %s", jobs[j].jid, jobs[j].pid, jobs[j].cmdline);
-			}
-		}
-	}
+				printf("[%d] (%d) Running %s", jobs[j].jid, jobs[j].pid, 
+					jobs[j].cmdline);
+			}  // end if
+		} // end for
+	} // end if jobs
 	else
 		printf("Error: No built in command, %s, found!", argv[0]);
 	
-	return 0;
+	return (0);
 }
 
 /* 
@@ -353,9 +354,38 @@ builtin_cmd(char **argv)
 void
 do_bgfg(char **argv) 
 {
+	assert(strcmp(argv[0],"bg") == 0 || strcmp(argv[0],"fg") == 0);
+	assert(argv[1] != NULL);
+	
+	JobP bgfgJob;
 
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	argv = (char **)argv;
+	if (strchr(argv[1],'%') == NULL)
+		bgfgJob = getjobpid(jobs, atoi(argv[1]));
+
+	else {
+		const char ch = '%';
+   		char *ret;
+   		ret = strchr(argv[1], ch);
+		int jid = atoi(ret+1);
+		bgfgJob = getjobjid(jobs, jid);
+	}
+
+	if (verbose && bgfgJob == NULL) {
+		printf("%s %s invalid: argument must be a PID or JID \n", argv[0], argv[1]);
+		return;
+	}
+
+	if (strcmp(argv[0], "bg") == 0) {
+		bgfgJob->state = BG;
+		kill(bgfgJob->pid, SIGCONT);
+		printf("[%d] (%d) %s", pid2jid(bgfgJob->pid), 
+				bgfgJob->pid, bgfgJob->cmdline);
+	}
+	else {
+		bgfgJob->state = FG;
+		kill(bgfgJob->pid, SIGCONT);
+		waitfg(bgfgJob->pid);
+	}
 }
 
 /* 
@@ -373,7 +403,6 @@ waitfg(pid_t pid)
 	/* Sleep while the given process is still active in the foreground */
 	while (fgpid(jobs) == pid)
 		sleep(1);
-	
 }
 
 /* 
@@ -494,14 +523,18 @@ sigchld_handler(int sig)
 void
 sigint_handler(int sig) 
 {	
+	assert(sig == SIGINT);
 	
 	if (sig == SIGINT) {
 		pid_t fg_pid = fgpid(jobs);
+		if (!fg_pid)
+			return;
+		
 		char str[SIG2STR_MAX];
 		sig2str(sig, str);
+		kill(-getpgid(fg_pid), sig);
 		printf("Job [%d] (%d) terminated by signal SIG%s\n", 
 			getjobpid(jobs, fg_pid)->jid, fg_pid, str);
-		kill(-getpgid(fg_pid), sig);
 	}
 }
 
@@ -514,7 +547,8 @@ void
 sigtstp_handler(int sig) 
 {
 
-	/* NEED TO SET THE STATE TO ST in either this or the child handler */
+
+	/* NEED TO SET THE STATE TO ST in either this or the child handler 
 	printf("Handling sig");
 	if (sig == SIGTSTP) {
 		pid_t fg_pid = fgpid(jobs);
@@ -524,6 +558,18 @@ sigtstp_handler(int sig)
 			getjobpid(jobs, fg_pid)->jid, fg_pid, str);
 		kill(-getpgid(fg_pid), sig);
 	}
+	*/
+
+	assert(sig == SIGTSTP);
+	pid_t fg_pid = fgpid(jobs);
+	if (!fg_pid)
+		return;
+
+	JobP fgJob = getjobpid(jobs, fg_pid);	
+	kill(-fgJob->pid, sig);
+	fgJob->state = ST;
+	printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
+		pid2jid(fgJob->pid), fgJob->pid);
 }
 
 /*********************
