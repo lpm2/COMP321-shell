@@ -201,7 +201,7 @@ eval(char *cmdline)
 		
 	// 	builtin_cmd(argv);
 	// } 
-	else if (!builtin_cmd(argv) {
+	else if (!builtin_cmd(argv)) {
 		/* Block sigchld signals in the parent */
 		sigemptyset(&mask);
 		sigaddset(&mask, SIGCHLD);
