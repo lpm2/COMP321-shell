@@ -477,7 +477,7 @@ sigchld_handler(int sig)
 		}
 		
 	} else if (sig == SIGSTOP || sig == SIGTSTP) {
-	
+		printf("SIGTSTP in child handler\n");
 	
 	} else if (sig == SIGINT) {
 		printf("SIGINT in child handler\n");
@@ -514,8 +514,16 @@ void
 sigtstp_handler(int sig) 
 {
 
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	sig = (int)sig;
+	/* NEED TO SET THE STATE TO ST in either this or the child handler */
+	printf("Handling sig");
+	if (sig == SIGTSTP) {
+		pid_t fg_pid = fgpid(jobs);
+		char str[SIG2STR_MAX];
+		sig2str(sig, str);
+		printf("Job [%d] (%d) stopped by signal SIG%s\n", 
+			getjobpid(jobs, fg_pid)->jid, fg_pid, str);
+		kill(-getpgid(fg_pid), sig);
+	}
 }
 
 /*********************
