@@ -370,7 +370,7 @@ do_bgfg(char **argv)
 	}
 
 	if (verbose && bgfgJob == NULL) {
-		printf("%s %d invalid: argument must be a PID or JID \n", argv[0], argv[1]);
+		printf("%s %s invalid: argument must be a PID or JID \n", argv[0], argv[1]);
 		return;
 	}
 
@@ -402,9 +402,6 @@ waitfg(pid_t pid)
 	/* Sleep while the given process is still active in the foreground */
 	while (fgpid(jobs) == pid)
 		sleep(1);
-
-
-	
 }
 
 /* 
