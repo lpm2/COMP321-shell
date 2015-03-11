@@ -194,56 +194,59 @@ eval(char *cmdline)
 	
 	bg_job = parseline(cmdline, argv);
 	
-	/* [TODO] May need to check for argv != NULL
-	 */
-	if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
-		strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
+	/* include "command not found check" */
+	if(argv[0] != NULL) {
+		/* [TODO] May need to check for argv != NULL
+		 */
+		if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
+			strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
 		
-		builtin_cmd(argv);
+			builtin_cmd(argv);
 	
-	} else {
+		} else {
 		
 		
-		/* Block sigchld signals in the parent */
-		sigemptyset(&mask);
-		sigaddset(&mask, SIGCHLD);
-		sigprocmask(SIG_BLOCK, &mask, NULL);
+			/* Block sigchld signals in the parent */
+			sigemptyset(&mask);
+			sigaddset(&mask, SIGCHLD);
+			sigprocmask(SIG_BLOCK, &mask, NULL);
 		
-		/* check whether it is a subdirectory as well */
-		if (argv[0][0] == '.' || argv[0][0] == '/') {
+			/* check whether it is a subdirectory as well */
+			if (argv[0][0] == '.' || argv[0][0] == '/') {
 			
-			/* add the child to the jobs list, unblock the SIGCHLD 	
-			 * signal then execute
-			 */
-			if ((pid = fork()) == 0) {
-				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-				if (!bg_job) 
-					setpgid(0, 0);
+				/* add the child to the jobs list, unblock the SIGCHLD 	
+				 * signal then execute
+				 */
+				if ((pid = fork()) == 0) {
+					sigprocmask(SIG_UNBLOCK, &mask, NULL);
+					if (!bg_job) 
+						setpgid(0, 0);
 				
-				execve(argv[0], argv, environ);
-			}
+					execve(argv[0], argv, environ);
+				}
 
-			if (bg_job) {
-				addjob(jobs, pid, BG, cmdline);
-				printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
-			}
-			else
-				addjob(jobs, pid, FG, cmdline);
+				if (bg_job) {
+					addjob(jobs, pid, BG, cmdline);
+					printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
+				}
+				else
+					addjob(jobs, pid, FG, cmdline);
 			
-			sigprocmask(SIG_UNBLOCK, &mask, NULL);
+				sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			
-			if (!bg_job)
-				waitfg(pid);
+				if (!bg_job)
+					waitfg(pid);
 				
+			}
+		
+			/* determine the path, otherwise */
+			else if (env_path != NULL) {
+		
+				//execvp()?;
+			}
+			
+		
 		}
-		
-		/* determine the path, otherwise */
-		else if (env_path != NULL) {
-		
-			//execvp()?;
-		}
-		
-		
 	}
 
 	return;
@@ -337,9 +340,12 @@ builtin_cmd(char **argv)
 	else if (strcmp(argv[0], "jobs") == 0) {
 		for (j = 0; j < MAXJOBS; j++) {
 			if (jobs[j].pid != 0 && jobs[j].state == BG) {
-				printf("[%d] (%d) Running %s", jobs[j].jid, jobs[j].pid, 
-					jobs[j].cmdline);
+				printf("[%d] (%d) Running %s", jobs[j].jid, 
+				jobs[j].pid, jobs[j].cmdline);
 			}  // end if
+			else if (jobs[j].pid != 0 && jobs[j].state == ST)
+				printf("[%d] (%d) Stopped %s", jobs[j].jid, 
+				jobs[j].pid, jobs[j].cmdline);
 		} // end for
 	} // end if jobs
 	else
@@ -498,7 +504,7 @@ sigchld_handler(int sig)
 		
 		while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
 		
-			if (verbose)
+			//if (verbose)
 				printf("Handler reaped child %d\n", (int)pid);
 		
 			/* If the process is in the jobs list, remove it */
@@ -566,8 +572,9 @@ sigtstp_handler(int sig)
 		return;
 
 	JobP fgJob = getjobpid(jobs, fg_pid);	
-	kill(-fgJob->pid, sig);
 	fgJob->state = ST;
+	kill(-fgJob->pid, sig);
+	
 	printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
 		pid2jid(fgJob->pid), fgJob->pid);
 }
