@@ -527,7 +527,7 @@ sigint_handler(int sig)
 	
 	if (sig == SIGINT) {
 		pid_t fg_pid = fgpid(jobs);
-		if (fg_pid == NULL)
+		if (!fg_pid)
 			return;
 		
 		char str[SIG2STR_MAX];
@@ -549,7 +549,7 @@ sigtstp_handler(int sig)
 
 	assert(sig == SIGTSTP);
 	pid_t fg_pid = fgpid(jobs);
-	if (fg_pid == NULL)
+	if (!fg_pid)
 		return;
 
 	JobP fgJob = getjobpid(jobs, fg_pid);	
