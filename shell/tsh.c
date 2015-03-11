@@ -359,8 +359,10 @@ void
 do_bgfg(char **argv) 
 {
 	assert(strcmp(argv[0],"bg") == 0 || strcmp(argv[0],"fg") == 0);
-	if (verbose && argv[1] == NULL)
-		printf("%s invalid, no PID or JID argument provided", argv[0]);
+	if (argv[1] == NULL) {
+		printf("%s command requires PID or %%jobid argument\n", argv[0]);
+		return;
+	}
 	
 	JobP bgfgJob;
 
@@ -374,8 +376,8 @@ do_bgfg(char **argv)
 		bgfgJob = getjobjid(jobs, jid);
 	}
 
-	if (verbose && bgfgJob == NULL) {
-		printf("%s %s invalid: argument must be a PID or JID \n", argv[0], argv[1]);
+	if (bgfgJob == NULL) {
+		printf("(%s): No such process\n", argv[1]);
 		return;
 	}
 
