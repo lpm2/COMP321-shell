@@ -364,7 +364,7 @@ do_bgfg(char **argv)
 		return;
 	}
 	
-	char pj_id_flag;
+	char pj_id_flag = 3;
 	JobP bgfgJob;
 
 	if (strchr(argv[1],'%') == NULL) {
