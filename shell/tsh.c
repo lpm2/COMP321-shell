@@ -529,12 +529,11 @@ sigint_handler(int sig)
 		pid_t fg_pid = fgpid(jobs);
 		if (!fg_pid)
 			return;
-		
-		char str[SIG2STR_MAX];
-		sig2str(sig, str);
-		kill(-getpgid(fg_pid), sig);
-		printf("Job [%d] (%d) terminated by signal SIG%s\n", 
-			getjobpid(jobs, fg_pid)->jid, fg_pid, str);
+
+		JobP fgJob = getjobpid(jobs, fg_pid);
+		kill(-fgJob->pid, sig);
+		printf("Job [%d] (%d) terminated by signal SIGINT\n", 
+			pid2jid(fgJob->pid), fgJob->pid);
 	}
 }
 
