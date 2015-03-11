@@ -353,9 +353,38 @@ builtin_cmd(char **argv)
 void
 do_bgfg(char **argv) 
 {
+	assert(strcmp(argv[0],"bg") == 0 || strcmp(argv[0],"fg") == 0);
+	assert(argv[1] != NULL);
+	
+	JobP bgfgJob;
 
-	/* Prevent an "unused parameter" warning.  REMOVE THIS STATEMENT! */
-	argv = (char **)argv;
+	if (strchr(argv[1],'%') == NULL)
+		bgfgJob = getjobpid(jobs, atoi(argv[1]));
+
+	else {
+		const char ch = '%';
+   		char *ret;
+   		ret = strchr(argv[1], ch);
+		int jid = atoi(ret+1);
+		bgfgJob = getjobjid(jobs, jid);
+	}
+
+	if (verbose && bgfgJob == NULL) {
+		printf("%s %d invalid: argument must be a PID or JID \n", argv[0], argv[1]);
+		return;
+	}
+
+	if (strcmp(argv[0], "bg") == 0) {
+		bgfgJob->state = BG;
+		kill(bgfgJob->pid, SIGCONT);
+		printf("[%d] (%d) %s", pid2jid(bgfgJob->pid), 
+				bgfgJob->pid, bgfgJob->cmdline);
+	}
+	else {
+		bgfgJob->state = FG;
+		kill(bgfgJob->pid, SIGCONT);
+		waitfg(bgfgJob->pid);
+	}
 }
 
 /* 
@@ -373,6 +402,8 @@ waitfg(pid_t pid)
 	/* Sleep while the given process is still active in the foreground */
 	while (fgpid(jobs) == pid)
 		sleep(1);
+
+
 	
 }
 
