@@ -422,7 +422,6 @@ waitfg(pid_t pid)
 	/* Sleep while the given process is still active in the foreground */
 	while (fgpid(jobs) == pid) {
 		sleep(1);
-		printf("waiting\n");	
 	}
 }
 
@@ -512,7 +511,6 @@ sigchld_handler(int sig)
 {
 	char str[SIG2STR_MAX]; //sigmaxline array
 	sig2str(sig, str);
-	printf("In child handler SIG%s\n", str);
 	pid_t pid;
 	sig = (int)sig;
 	int status;
@@ -530,7 +528,7 @@ sigchld_handler(int sig)
 			/* If the process is in the jobs list, remove it */
 			if (WIFSTOPPED(status)) {
 				fgJob->state = ST;
-				printf("Job [%d] (%d) stopped by signal 					SIGTSTP\n", 
+				printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
 		pid2jid(fgJob->pid), fgJob->pid);
 			} else if (WIFSIGNALED(status)) {
 				printf("Job [%d] (%d) terminated by signal SIGINT\n", pid2jid(fgJob->pid), fgJob->pid);
@@ -538,14 +536,8 @@ sigchld_handler(int sig)
 			} else
 				deletejob(jobs, pid);
 		}
-		
-	} else if (sig == SIGSTOP || sig == SIGTSTP) {
-		printf("SIGTSTP in child handler\n");
-	
-	} else if (sig == SIGINT) {
-		printf("SIGINT in child handler\n");
 	}
-	printf("About to return from child handler\n");
+
 	return;
 }
 
