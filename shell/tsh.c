@@ -190,7 +190,6 @@ eval(char *cmdline)
 	char **argv = malloc(sizeof(char **));
 	int bg_job;	/* whether the job is to run in the background */
 	int pid;	/* the process id returned from fork */
-	sigset_t mask;
 	
 	bg_job = parseline(cmdline, argv);
 	
@@ -200,6 +199,7 @@ eval(char *cmdline)
 
 	else if (!builtin_cmd(argv)) {
 		/* Block sigchld signals in the parent */
+		sigset_t mask;
 		sigemptyset(&mask);
 		sigaddset(&mask, SIGCHLD);
 		sigprocmask(SIG_BLOCK, &mask, NULL);
@@ -211,13 +211,12 @@ eval(char *cmdline)
 			 * signal then execute
 			 */
 			if ((pid = fork()) == 0) {
+				//if (!bg_job)
+				setpgid(0, 0);
 				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-				if (!bg_job)
-					setpgid(0, 0);
-			
 				if (execvp(argv[0], argv) < 0) {
 					printf("%s: Command not found\n", argv[0]);
-				exit(0);
+					exit(0);
 				}
 			}
 
@@ -227,13 +226,15 @@ eval(char *cmdline)
 				addjob(jobs, pid, BG, cmdline);
 				printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
 			}
-			else
+			else {
 				addjob(jobs, pid, FG, cmdline);
+				waitfg(pid);
+			}
 			
 			sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			
-			if (!bg_job)
-				waitfg(pid);
+			// if (!bg_job)
+			// 	waitfg(pid);
 		}
 	} // end else
 
@@ -334,15 +335,7 @@ builtin_cmd(char **argv)
 		return(1);
 	}
 	else if (strcmp(argv[0], "jobs") == 0) {
-		for (j = 0; j < MAXJOBS; j++) {
-			if (jobs[j].pid != 0 && jobs[j].state == BG) {
-				printf("[%d] (%d) Running %s", jobs[j].jid, 
-				jobs[j].pid, jobs[j].cmdline);
-			}  // end if
-			else if (jobs[j].pid != 0 && jobs[j].state == ST)
-				printf("[%d] (%d) Stopped %s", jobs[j].jid, 
-				jobs[j].pid, jobs[j].cmdline);
-		} // end for
+		listjobs(jobs);
 		return (1);
 	} // end if jobs
 	else {
