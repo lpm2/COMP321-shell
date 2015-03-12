@@ -197,11 +197,7 @@ eval(char *cmdline)
 
 	if (argv[0] == NULL)
 		return;
-	// else if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
-	// 	strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
-		
-	// 	builtin_cmd(argv);
-	// } 
+
 	else if (!builtin_cmd(argv)) {
 		/* Block sigchld signals in the parent */
 		sigemptyset(&mask);
@@ -352,7 +348,8 @@ builtin_cmd(char **argv)
 	} // end if jobs
 	else {
 		if (verbose)
-			printf("Error: No built in command, %s, found!", argv[0]);
+			printf("Error: No built in command, %s, found!", 
+				argv[0]);
 		return(0);
 	}
 }
@@ -372,7 +369,8 @@ do_bgfg(char **argv)
 {
 	assert(strcmp(argv[0],"bg") == 0 || strcmp(argv[0],"fg") == 0);
 	if (argv[1] == NULL) {
-		printf("%s command requires PID or %%jobid argument\n", argv[0]);
+		printf("%s command requires PID or %%jobid argument\n", 
+			argv[0]);
 		return;
 	}
 	
@@ -401,7 +399,8 @@ do_bgfg(char **argv)
 		else if (pj_id_flag == 1)
 			printf("%s: No such job\n", argv[1]);
 		else
-			printf("%s: argument must be a PID or %%jobid\n", argv[0]);
+			printf("%s: argument must be a PID or %%jobid\n", 
+				argv[0]);
 		return;
 	}
 
@@ -424,7 +423,7 @@ do_bgfg(char **argv)
  * 	Process id
  *
  * Effects: 
- * 	[TODO]
+ * 	sleeps until the foreground job is no longer active
  */
 void
 waitfg(pid_t pid)
@@ -444,7 +443,7 @@ waitfg(pid_t pid)
  *   pathstr is the valid path from the environment.
  *
  * Effects:
- *   [TODO]
+ *   Does nothing
  */
 void
 initpath(char *pathstr)
@@ -540,10 +539,11 @@ sigchld_handler(int sig)
 			if (WIFSTOPPED(status)) {
 				fgJob->state = ST;
 				printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
-		pid2jid(fgJob->pid), fgJob->pid);
+					pid2jid(fgJob->pid), fgJob->pid);
 			} else if (WIFSIGNALED(status)) {
-				printf("Job [%d] (%d) terminated by signal SIGINT\n", pid2jid(fgJob->pid), fgJob->pid);
 				deletejob(jobs, pid);
+				printf("Job [%d] (%d) terminated by signal SIGINT\n", 
+					pid2jid(fgJob->pid), fgJob->pid);
 			} else
 				deletejob(jobs, pid);
 		}
@@ -601,8 +601,8 @@ sigtstp_handler(int sig)
 		return;
 
 	JobP fgJob = getjobpid(jobs, fg_pid);	
-	fgJob->state = ST;
-	kill(-fgJob->pid, sig);
+	fgJob->state = ST; // Change state to stopped
+	kill(-fgJob->pid, sig); 
 	
 	return;
 }
