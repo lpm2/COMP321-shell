@@ -198,8 +198,9 @@ eval(char *cmdline)
 	if(argv[0] != NULL) {
 		/* [TODO] May need to check for argv != NULL
 		 */
-		if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
-			strcmp(argv[0], "fg") == 0 || strcmp(argv[0], "jobs") == 0) {
+		if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 
+			|| strcmp(argv[0], "fg") == 0 || 
+				strcmp(argv[0], "jobs") == 0) {
 		
 			builtin_cmd(argv);
 	
@@ -219,7 +220,7 @@ eval(char *cmdline)
 				 */
 				if ((pid = fork()) == 0) {
 					sigprocmask(SIG_UNBLOCK, &mask, NULL);
-					if (!bg_job) 
+					if (!bg_job)
 						setpgid(0, 0);
 				
 					execve(argv[0], argv, environ);
@@ -495,7 +496,9 @@ initpath(char *pathstr)
 void
 sigchld_handler(int sig) 
 {
-	
+	char str[SIG2STR_MAX]; //sigmaxline array
+	sig2str(sig, str);
+	printf("In child handler SIG%s\n", str);
 	pid_t pid;
 	sig = (int)sig;
 	
@@ -517,7 +520,7 @@ sigchld_handler(int sig)
 	} else if (sig == SIGINT) {
 		printf("SIGINT in child handler\n");
 	}
-		
+	printf("About to return from child handler\n");
 	return;
 }
 
@@ -552,7 +555,7 @@ void
 sigtstp_handler(int sig) 
 {
 
-
+	printf("STP Handler");
 	/* NEED TO SET THE STATE TO ST in either this or the child handler 
 	printf("Handling sig");
 	if (sig == SIGTSTP) {
@@ -571,8 +574,9 @@ sigtstp_handler(int sig)
 		return;
 
 	JobP fgJob = getjobpid(jobs, fg_pid);	
-	fgJob->state = ST;
+	
 	kill(-fgJob->pid, sig);
+	fgJob->state = ST;
 	
 	printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
 		pid2jid(fgJob->pid), fgJob->pid);
