@@ -234,7 +234,10 @@ eval(char *cmdline)
 		}
 		/* determine the path, otherwise */
 		else if (env_path != NULL) {
-			//execvp()?;
+			if (execvp(argv[0], argv) < 0) {
+				printf("%s: Command not found\n", argv[0]);
+				exit(0);
+			}
 		}
 	} // end else
 
