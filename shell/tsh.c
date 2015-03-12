@@ -382,6 +382,7 @@ do_bgfg(char **argv)
 		pj_id_flag = 1;
 	}
 
+	/* Corner cases */
 	if (bgfgJob == NULL) {
 		if (pj_id_flag == 0)
 			printf("(%s): No such process\n", argv[1]);
@@ -400,8 +401,8 @@ do_bgfg(char **argv)
 	}
 	else {
 		bgfgJob->state = FG;
-		kill(bgfgJob->pid, SIGCONT);
 		waitfg(bgfgJob->pid);
+		kill(bgfgJob->pid, SIGCONT);
 	}
 }
 
