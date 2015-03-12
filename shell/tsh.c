@@ -219,18 +219,22 @@ eval(char *cmdline)
 		}
 
 		if (bg_job) {
-			addjob(jobs, pid, BG, cmdline);
+			if (verbose && !addjob(jobs, pid, BG, cmdline)) {
+				printf("Error: Problem adding foreground job!\n");
+				exit(1);
+			}
 			sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
-		}
+		} // end if
 		else {
-			addjob(jobs, pid, FG, cmdline);
+			if (verbose && !addjob(jobs, pid, FG, cmdline)) {
+				printf("Error: Problem adding background job!\n");
+				exit(1);
+			}
 			sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			waitfg(pid);
-		}
-		
-		
-	} // end else
+		} // end else		
+	} // end else if not built in
 
 	return;
 }
