@@ -319,7 +319,11 @@ parseline(const char *cmdline, char **argv)
  * Effects:
  *	Checks if command argument is built in
  *	Runs built in command arguments
- *
+ *	The bg <job> command restarts <job> by sending it a SIGCONT signal, 
+ * 		then runs it in the background.
+ *	The fg <job> command restarts <job> by sending it a SIGCONT signal, 
+ *		then runs it in the foreground. 
+ * 	The <job> argument can be either a PID or a JID.
  */
 int
 builtin_cmd(char **argv) 
@@ -354,6 +358,13 @@ builtin_cmd(char **argv)
 
 /* 
  * do_bgfg - Execute the builtin bg and fg commands.
+ *
+ * Requires:
+ * 	Command argument
+ *
+ * Effects:
+ *	Checks if command arguments fg and bg are built in
+ *	Runs built in command arguments fg and bg
  */
 void
 do_bgfg(char **argv) 
