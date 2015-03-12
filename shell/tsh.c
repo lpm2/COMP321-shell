@@ -322,8 +322,6 @@ parseline(const char *cmdline, char **argv)
 int
 builtin_cmd(char **argv) 
 {	
-	unsigned int j;
-	
 	if (strcmp(argv[0], "quit") == 0)
 		exit(0);
 	else if (strcmp(argv[0], "bg") == 0) {
