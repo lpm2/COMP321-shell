@@ -569,9 +569,9 @@ sigint_handler(int sig)
 
 		JobP fgJob = getjobpid(jobs, fg_pid);
 		kill(-fgJob->pid, sig);
-		printf("Job [%d] (%d) terminated by signal SIGINT\n", 
-			pid2jid(fgJob->pid), fgJob->pid);
 	}
+	
+	return;
 }
 
 /*
@@ -604,9 +604,7 @@ sigtstp_handler(int sig)
 	fgJob->state = ST;
 	kill(-fgJob->pid, sig);
 	
-	
-	printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
-		pid2jid(fgJob->pid), fgJob->pid);
+	return;
 }
 
 /*********************
