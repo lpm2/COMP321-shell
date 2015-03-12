@@ -208,8 +208,8 @@ eval(char *cmdline)
 		 * signal then execute
 		 */
 		if ((pid = fork()) == 0) {
-			//if (!bg_job)
-			setpgid(0, 0);
+			if (!bg_job)
+				setpgid(0, 0);
 			sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			
 			if (execvp(argv[0], argv) == -1) {
@@ -217,8 +217,6 @@ eval(char *cmdline)
 				exit(0);
 			}
 		}
-
-		// TODO Need command not found
 
 		if (bg_job) {
 			addjob(jobs, pid, BG, cmdline);
@@ -527,9 +525,9 @@ sigchld_handler(int sig)
 				printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
 					pid2jid(fgJob->pid), fgJob->pid);
 			} else if (WIFSIGNALED(status)) {
-				deletejob(jobs, pid);
 				printf("Job [%d] (%d) terminated by signal SIGINT\n", 
 					pid2jid(fgJob->pid), fgJob->pid);
+				deletejob(jobs, pid);
 			} else
 				deletejob(jobs, pid);
 		}
