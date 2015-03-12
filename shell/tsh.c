@@ -203,39 +203,35 @@ eval(char *cmdline)
 		sigemptyset(&mask);
 		sigaddset(&mask, SIGCHLD);
 		sigprocmask(SIG_BLOCK, &mask, NULL);
-		
-		/* check whether it is a subdirectory as well */
-		if (argv[0][0] == '.' || argv[0][0] == '/') {
-			
-			/* add the child to the jobs list, unblock the SIGCHLD 	
-			 * signal then execute
-			 */
-			if ((pid = fork()) == 0) {
-				//if (!bg_job)
-				setpgid(0, 0);
-				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-				if (execvp(argv[0], argv) < 0) {
-					printf("%s: Command not found\n", argv[0]);
-					exit(0);
-				}
-			}
-
-			// TODO Need command not found
-
-			if (bg_job) {
-				addjob(jobs, pid, BG, cmdline);
-				printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
-			}
-			else {
-				addjob(jobs, pid, FG, cmdline);
-				waitfg(pid);
-			}
-			
+					
+		/* add the child to the jobs list, unblock the SIGCHLD 	
+		 * signal then execute
+		 */
+		if ((pid = fork()) == 0) {
+			//if (!bg_job)
+			setpgid(0, 0);
 			sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			
-			// if (!bg_job)
-			// 	waitfg(pid);
+			if (execvp(argv[0], argv) == -1) {
+				printf("%s: Command not found\n", argv[0]);
+				exit(0);
+			}
 		}
+
+		// TODO Need command not found
+
+		if (bg_job) {
+			addjob(jobs, pid, BG, cmdline);
+			sigprocmask(SIG_UNBLOCK, &mask, NULL);
+			printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
+		}
+		else {
+			addjob(jobs, pid, FG, cmdline);
+			sigprocmask(SIG_UNBLOCK, &mask, NULL);
+			waitfg(pid);
+		}
+		
+		
 	} // end else
 
 	return;
