@@ -208,8 +208,8 @@ eval(char *cmdline)
 		 * signal then execute
 		 */
 		if ((pid = fork()) == 0) {
-			if (!bg_job)
-				setpgid(0, 0);
+			
+			setpgid(0, 0);
 			sigprocmask(SIG_UNBLOCK, &mask, NULL);
 			
 			if (execvp(argv[0], argv) == -1) {
@@ -403,7 +403,6 @@ do_bgfg(char **argv)
 	}
 	else {
 		bgfgJob->state = FG;
-		setpgid(bgfgJob->pid, bgfgJob->pid);
 		kill(bgfgJob->pid, SIGCONT);
 		waitfg(bgfgJob->pid);
 	}
@@ -526,7 +525,7 @@ sigchld_handler(int sig)
 	
 			if (verbose)
 				printf("Handler reaped child %d\n", (int)pid);
-		
+			
 			/* If the process is in the jobs list, remove it */
 			if (WIFSTOPPED(status)) {
 				fgJob->state = ST;
@@ -536,7 +535,7 @@ sigchld_handler(int sig)
 				printf("Job [%d] (%d) terminated by signal SIGINT\n", 
 					pid2jid(fgJob->pid), fgJob->pid);
 				deletejob(jobs, pid);
-			} else
+			} else if (WIFEXITED(status))
 				deletejob(jobs, pid);
 		}
 	}
@@ -560,7 +559,8 @@ sigint_handler(int sig)
 			return;
 
 		JobP fgJob = getjobpid(jobs, fg_pid);
-		kill(-fgJob->pid, sig);
+		if (kill(-fgJob->pid, sig) == -1)
+			unix_error("Unable to forward SIGINT!\n");
 	}
 	
 	return;
@@ -586,15 +586,15 @@ sigtstp_handler(int sig)
 		kill(-getpgid(fg_pid), sig);
 	}
 	*/
-
 	assert(sig == SIGTSTP);
 	pid_t fg_pid = fgpid(jobs);
 	if (!fg_pid)
 		return;
 
 	JobP fgJob = getjobpid(jobs, fg_pid);	
-	fgJob->state = ST; // Change state to stopped
-	kill(-fgJob->pid, sig); 
+
+	if (kill(-fgJob->pid, sig) == -1)
+		unix_error("Unable to forward SIGTSTP!\n"); 
 	
 	return;
 }
