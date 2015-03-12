@@ -368,9 +368,9 @@ do_bgfg(char **argv)
 	JobP bgfgJob;
 
 	if (strchr(argv[1],'%') == NULL) {
-		int pid = floor(atoi(argv[1]));
+		int pid = atoi(argv[1]);
 		bgfgJob = getjobpid(jobs, pid);
-		if (pid != 0)
+		if (isdigit(argv[1][0]))
 			pj_id_flag = 0;
 	}
 	else {
