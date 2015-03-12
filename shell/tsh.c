@@ -194,6 +194,7 @@ eval(char *cmdline)
 	
 	bg_job = parseline(cmdline, argv);
 	
+
 	if (argv[0] == NULL)
 		return;
 	// else if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "bg") == 0 || 	
@@ -215,9 +216,9 @@ eval(char *cmdline)
 			 */
 			if ((pid = fork()) == 0) {
 				sigprocmask(SIG_UNBLOCK, &mask, NULL);
-				if (!bg_job) 
+				if (!bg_job)
 					setpgid(0, 0);
-				
+			
 				execve(argv[0], argv, environ);
 			}
 
@@ -234,12 +235,9 @@ eval(char *cmdline)
 			
 			if (!bg_job)
 				waitfg(pid);
-				
 		}
-
 		/* determine the path, otherwise */
 		else if (env_path != NULL) {
-		
 			//execvp()?;
 		}
 	} // end else
@@ -343,9 +341,12 @@ builtin_cmd(char **argv)
 	else if (strcmp(argv[0], "jobs") == 0) {
 		for (j = 0; j < MAXJOBS; j++) {
 			if (jobs[j].pid != 0 && jobs[j].state == BG) {
-				printf("[%d] (%d) Running %s", jobs[j].jid, jobs[j].pid, 
-					jobs[j].cmdline);
+				printf("[%d] (%d) Running %s", jobs[j].jid, 
+				jobs[j].pid, jobs[j].cmdline);
 			}  // end if
+			else if (jobs[j].pid != 0 && jobs[j].state == ST)
+				printf("[%d] (%d) Stopped %s", jobs[j].jid, 
+				jobs[j].pid, jobs[j].cmdline);
 		} // end for
 		return (1);
 	} // end if jobs
@@ -430,8 +431,10 @@ waitfg(pid_t pid)
 {
 
 	/* Sleep while the given process is still active in the foreground */
-	while (fgpid(jobs) == pid)
+	while (fgpid(jobs) == pid) {
 		sleep(1);
+		printf("waiting\n");	
+	}
 }
 
 /* 
@@ -518,20 +521,33 @@ initpath(char *pathstr)
 void
 sigchld_handler(int sig) 
 {
-	
+	char str[SIG2STR_MAX]; //sigmaxline array
+	sig2str(sig, str);
+	printf("In child handler SIG%s\n", str);
 	pid_t pid;
 	sig = (int)sig;
+	int status;
 	
 	// if sig isn't a sigstop/sigtstp, only when the child terminated
 	if (sig == SIGCHLD) {
 		
-		while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
+		while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
 		
+			JobP fgJob = getjobpid(jobs, pid);	
+	
 			if (verbose)
 				printf("Handler reaped child %d\n", (int)pid);
 		
 			/* If the process is in the jobs list, remove it */
-			deletejob(jobs, pid);
+			if (WIFSTOPPED(status)) {
+				fgJob->state = ST;
+				printf("Job [%d] (%d) stopped by signal 					SIGTSTP\n", 
+		pid2jid(fgJob->pid), fgJob->pid);
+			} else if (WIFSIGNALED(status)) {
+				printf("Job [%d] (%d) terminated by signal SIGINT\n", pid2jid(fgJob->pid), fgJob->pid);
+				deletejob(jobs, pid);
+			} else
+				deletejob(jobs, pid);
 		}
 		
 	} else if (sig == SIGSTOP || sig == SIGTSTP) {
@@ -540,7 +556,7 @@ sigchld_handler(int sig)
 	} else if (sig == SIGINT) {
 		printf("SIGINT in child handler\n");
 	}
-		
+	printf("About to return from child handler\n");
 	return;
 }
 
@@ -575,7 +591,6 @@ void
 sigtstp_handler(int sig) 
 {
 
-
 	/* NEED TO SET THE STATE TO ST in either this or the child handler 
 	printf("Handling sig");
 	if (sig == SIGTSTP) {
@@ -594,8 +609,10 @@ sigtstp_handler(int sig)
 		return;
 
 	JobP fgJob = getjobpid(jobs, fg_pid);	
-	kill(-fgJob->pid, sig);
 	fgJob->state = ST;
+	kill(-fgJob->pid, sig);
+	
+	
 	printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
 		pid2jid(fgJob->pid), fgJob->pid);
 }

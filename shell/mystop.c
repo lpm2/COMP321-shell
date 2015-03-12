@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     for (i=0; i < secs; i++)
        sleep(1);
 	
-    pid = getpid(); 
+    pid = getpid();
 
     if (kill(-pid, SIGTSTP) < 0)
        fprintf(stderr, "kill (tstp) error");
