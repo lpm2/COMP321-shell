@@ -365,10 +365,12 @@ do_bgfg(char **argv)
 	}
 	
 	char pj_id_flag = 3;
+	int pid;
+	int jid;
 	JobP bgfgJob;
 
-	if (strchr(argv[1][0],'%') == NULL) {
-		int pid = atoi(argv[1]);
+	if (strchr(argv[1],'%') == NULL) {
+		pid = atoi(argv[1]);
 		bgfgJob = getjobpid(jobs, pid);
 		if (isdigit(argv[1][0]))
 			pj_id_flag = 0;
@@ -377,7 +379,7 @@ do_bgfg(char **argv)
 		const char ch = '%';
    		char *ret;
    		ret = strchr(argv[1], ch);
-		int jid = atoi(ret+1);
+		jid = atoi(ret+1);
 		bgfgJob = getjobjid(jobs, jid);
 		pj_id_flag = 1;
 	}
@@ -385,9 +387,9 @@ do_bgfg(char **argv)
 	/* Corner cases */
 	if (bgfgJob == NULL) {
 		if (pj_id_flag == 0)
-			printf("(%s): No such process\n", argv[1]);
+			printf("(%d): No such process\n", pid);
 		else if (pj_id_flag == 1)
-			printf("%s: No such job\n", argv[1]);
+			printf("%d: No such job\n", jid);
 		else
 			printf("%s: argument must be a PID or %%jobid\n", 
 				argv[0]);
