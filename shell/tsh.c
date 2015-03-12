@@ -215,7 +215,10 @@ eval(char *cmdline)
 				if (!bg_job)
 					setpgid(0, 0);
 			
-				execve(argv[0], argv, environ);
+				if (execvp(argv[0], argv) < 0) {
+					printf("%s: Command not found\n", argv[0]);
+				exit(0);
+				}
 			}
 
 			// TODO Need command not found
@@ -231,13 +234,6 @@ eval(char *cmdline)
 			
 			if (!bg_job)
 				waitfg(pid);
-		}
-		/* determine the path, otherwise */
-		else if (env_path != NULL) {
-			if (execvp(argv[0], argv) < 0) {
-				printf("%s: Command not found\n", argv[0]);
-				exit(0);
-			}
 		}
 	} // end else
 
