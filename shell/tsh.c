@@ -210,8 +210,8 @@ eval(char *cmdline)
 		if ((pid = fork()) == 0) {
 			
 			setpgid(0, 0);
-			sigprocmask(SIG_UNBLOCK, &mask, NULL);
-			
+			if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+				unix_error("Problem unblocking SIGCHLD!");			
 			if (execvp(argv[0], argv) == -1) {
 				printf("%s: Command not found\n", argv[0]);
 				exit(0);
@@ -221,19 +221,23 @@ eval(char *cmdline)
 		if (bg_job) {
 			if (!addjob(jobs, pid, BG, cmdline)) {
 				if (verbose)
-					printf("Error: Problem adding foreground job!\n");
+					printf("Error: Problem adding"
+					    " foreground job!\n");
 				exit(1);
 			}
-			sigprocmask(SIG_UNBLOCK, &mask, NULL);
+			if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+				unix_error("Problem unblocking SIGCHLD!");
 			printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
 		} // end if
 		else {
 			if (!addjob(jobs, pid, FG, cmdline)) {
 				if (verbose)
-					printf("Error: Problem adding background job!\n");
+					printf("Error: Problem adding"
+					    " background job!\n");
 				exit(1);
 			}
-			sigprocmask(SIG_UNBLOCK, &mask, NULL);
+			if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+				unix_error("Problem unblocking SIGCHLD!");
 			waitfg(pid);
 		} // end else		
 	} // end else if not built in
@@ -398,7 +402,7 @@ do_bgfg(char **argv)
 	if (strcmp(argv[0], "bg") == 0) {
 		bgfgJob->state = BG;
 		printf("[%d] (%d) %s", pid2jid(bgfgJob->pid), 
-				bgfgJob->pid, bgfgJob->cmdline);
+		    bgfgJob->pid, bgfgJob->cmdline);
 		kill(bgfgJob->pid, SIGCONT);
 	}
 	else {
@@ -439,7 +443,7 @@ waitfg(pid_t pid)
 void
 initpath(char *pathstr)
 {
-	pathstr = (char *)pathstr;
+	assert(pathstr != NULL);
 // 
 // 	if (pathstr == NULL) {
 // 		printf("The path string is null\n");
@@ -513,10 +517,8 @@ sigchld_handler(int sig)
 	char str[SIG2STR_MAX]; //sigmaxline array
 	sig2str(sig, str);
 	pid_t pid;
-	sig = (int)sig;
 	int status;
 	
-	// if sig isn't a sigstop/sigtstp, only when the child terminated
 	if (sig == SIGCHLD) {
 		
 		while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
@@ -529,11 +531,13 @@ sigchld_handler(int sig)
 			/* If the process is in the jobs list, remove it */
 			if (WIFSTOPPED(status)) {
 				fgJob->state = ST;
-				printf("Job [%d] (%d) stopped by signal SIGTSTP\n", 
-					pid2jid(fgJob->pid), fgJob->pid);
+				printf("Job [%d] (%d) stopped by signal "
+				    "SIGTSTP\n", 
+				    pid2jid(fgJob->pid), fgJob->pid);
 			} else if (WIFSIGNALED(status)) {
-				printf("Job [%d] (%d) terminated by signal SIGINT\n", 
-					pid2jid(fgJob->pid), fgJob->pid);
+				printf("Job [%d] (%d) terminated by signal " 	
+				    "SIGINT\n", 
+				    pid2jid(fgJob->pid), fgJob->pid);
 				deletejob(jobs, pid);
 			} else if (WIFEXITED(status))
 				deletejob(jobs, pid);
@@ -553,15 +557,15 @@ sigint_handler(int sig)
 {	
 	assert(sig == SIGINT);
 	
-	if (sig == SIGINT) {
-		pid_t fg_pid = fgpid(jobs);
-		if (!fg_pid)
-			return;
 
-		JobP fgJob = getjobpid(jobs, fg_pid);
-		if (kill(-fgJob->pid, sig) == -1)
-			unix_error("Unable to forward SIGINT!\n");
-	}
+	pid_t fg_pid = fgpid(jobs);
+	if (!fg_pid)
+		return;
+
+	JobP fgJob = getjobpid(jobs, fg_pid);
+	if (fgJob == NULL || kill(-fgJob->pid, sig) == -1)
+		unix_error("Unable to forward SIGINT!\n");
+
 	
 	return;
 }
@@ -574,26 +578,14 @@ sigint_handler(int sig)
 void
 sigtstp_handler(int sig) 
 {
-
-	/* NEED TO SET THE STATE TO ST in either this or the child handler 
-	printf("Handling sig");
-	if (sig == SIGTSTP) {
-		pid_t fg_pid = fgpid(jobs);
-		char str[SIG2STR_MAX];
-		sig2str(sig, str);
-		printf("Job [%d] (%d) stopped by signal SIG%s\n", 
-			getjobpid(jobs, fg_pid)->jid, fg_pid, str);
-		kill(-getpgid(fg_pid), sig);
-	}
-	*/
 	assert(sig == SIGTSTP);
+	
 	pid_t fg_pid = fgpid(jobs);
 	if (!fg_pid)
 		return;
 
 	JobP fgJob = getjobpid(jobs, fg_pid);	
-
-	if (kill(-fgJob->pid, sig) == -1)
+	if (fgJob == NULL || kill(-fgJob->pid, sig) == -1)
 		unix_error("Unable to forward SIGTSTP!\n"); 
 	
 	return;
