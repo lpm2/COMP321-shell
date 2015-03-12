@@ -19,4 +19,5 @@ TESTING STRATEGY
 you should explain how you tested your code, how you selected your
 inputs, and why that selection is sufficient to test your code.>
 
-
+ran bg and fg without arguments
+ran bg and fg with invalid pid / jid number and invalid arguments
