@@ -396,14 +396,15 @@ do_bgfg(char **argv)
 
 	if (strcmp(argv[0], "bg") == 0) {
 		bgfgJob->state = BG;
-		kill(bgfgJob->pid, SIGCONT);
 		printf("[%d] (%d) %s", pid2jid(bgfgJob->pid), 
 				bgfgJob->pid, bgfgJob->cmdline);
+		kill(bgfgJob->pid, SIGCONT);
 	}
 	else {
 		bgfgJob->state = FG;
-		waitfg(bgfgJob->pid);
+		setpgid(bgfgJob->pid, bgfgJob->pid);
 		kill(bgfgJob->pid, SIGCONT);
+		waitfg(bgfgJob->pid);
 	}
 }
 
