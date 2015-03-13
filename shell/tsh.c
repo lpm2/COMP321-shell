@@ -403,11 +403,11 @@ do_bgfg(char **argv)
 		bgfgJob->state = BG;
 		printf("[%d] (%d) %s", pid2jid(bgfgJob->pid), 
 		    bgfgJob->pid, bgfgJob->cmdline);
-		kill(bgfgJob->pid, SIGCONT);
+		kill(-bgfgJob->pid, SIGCONT);
 	}
 	else {
 		bgfgJob->state = FG;
-		kill(bgfgJob->pid, SIGCONT);
+		kill(-bgfgJob->pid, SIGCONT);
 		waitfg(bgfgJob->pid);
 	}
 }
@@ -518,7 +518,7 @@ sigchld_handler(int sig)
 	sig2str(sig, str);
 	pid_t pid;
 	int status;
-	
+
 	if (sig == SIGCHLD) {
 		
 		while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
