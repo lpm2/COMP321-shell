@@ -182,10 +182,11 @@ main(int argc, char **argv)
  * when we type ctrl-c (ctrl-z) at the keyboard.  
  *
  * Requires:
- *  <???>
+ *  A string representing a command for the shell to execute
  *
  * Effects:
- *  <???>
+ *  Executes the given command, either as a built-in command or as an executable  	
+ * file depending on the arguments
  */
 static void
 eval(const char *cmdline) 
@@ -496,10 +497,12 @@ initpath(char *pathstr)
  *  currently running children to terminate.  
  *
  * Requires:
- *  <???>
+ *  A signal number
  *
  * Effects:
- *  <???>
+ *  Reaps terminated children, changes the state of stopped children in the job 
+ *  list to ST, removes terminated children from the jobs list, prints messages 
+ *  if children received TSTP or INT signals
  */
 static void
 sigchld_handler(int signum)
@@ -553,10 +556,10 @@ sigchld_handler(int signum)
  *  to the foreground job.  
  *
  * Requires:
- *  <???>
+ *  Signal number
  *
  * Effects:
- *  <???>
+ *  Catches an interrupt signal and sends it to the foreground job
  */
 static void
 sigint_handler(int sig) 
@@ -590,10 +593,10 @@ sigint_handler(int sig)
  *  foreground job by sending it a SIGTSTP.  
  *
  * Requires:
- *  <???>
+ *  Signal number
  *
  * Effects:
- *  <???>
+ *  Catches a TSTP signal and sends it to the foreground job
  */
 static void
 sigtstp_handler(int sig) 
