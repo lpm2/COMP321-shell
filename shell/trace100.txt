@@ -112,11 +112,21 @@ TSTP
 /bin/echo tsh> fg %1
 fg %1
 
-SLEEP 4
+SLEEP 2
 INT
 
 /bin/echo tsh> jobs
 jobs
+
+/bin/echo tsh> fg %2
+fg %2
+
+INT
+
+/bin/echo tsh> jobs
+jobs
+
+
 
 
 
