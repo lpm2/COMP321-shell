@@ -118,13 +118,36 @@ INT
 /bin/echo tsh> jobs
 jobs
 
-/bin/echo tsh> fg %2
-fg %2
+/bin/echo tsh> fg %3
+fg %3
 
-INT
+/bin/echo tsh> fg %1
+fg %1
+
+/bin/echo Confirm No Such Job
+
+/bin/echo tsh> bg 00012
+bg 00012
+
+/bin/echo tsh> bg 000000
+bg 000000
+
+/bin/echo Confirm No Such Process
+
+/bin/echo tsh> bg asdgasdg
+bg asdgasdg
+
+/bin/echo tsh> fg !!@#!@#
+bg !!@#!@#
+
+/bin/echo Confirm Not Valid Input
 
 /bin/echo tsh> jobs
 jobs
+
+/bin/echo Confirm No Output
+
+
 
 
 
