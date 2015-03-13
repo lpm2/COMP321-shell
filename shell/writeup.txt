@@ -11,8 +11,13 @@ would use it).>
 
 DESIGN
 
-<insert a detailed description of any appropriate design decisions you
-made, such as data structures, algorithms, etc.>
+For our the built-in commands of our shell, we used strcmp to check the if the
+first argument given was any of the 4 built in commands and if any of them
+were matched, we would run the appropriate function, either listjobs, exit, or
+do_bgfg. For do_bgfg, we had a few corner case error/invalid print statements 
+to take care of, so we created a flag that gets set depending on whether the 
+argument passed was a pid, jid, or invalid, so we can print the appropriate 
+message in line with what the reference passes.
 
 TESTING STRATEGY
 

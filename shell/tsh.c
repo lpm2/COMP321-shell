@@ -370,7 +370,11 @@ builtin_cmd(char **argv)
 void
 do_bgfg(char **argv) 
 {
-	assert(strcmp(argv[0],"bg") == 0 || strcmp(argv[0],"fg") == 0);
+	if (strcmp(argv[0],"bg") != 0 || strcmp(argv[0],"fg") != 0) {
+		if (verbose)
+			printf("Error: Argument passed is neither bg nor fg!\n");
+		return;
+	}
 	if (argv[1] == NULL) {
 		printf("%s command requires PID or %%jobid argument\n", 
 			argv[0]);
