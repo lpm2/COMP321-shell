@@ -14,7 +14,7 @@ TSTP
 /bin/echo tsh> jobs
 jobs
 
-/bin/echo tsh> ./myspin 4 \046
+/bin/echo tsh> ./myspin 4
 ./mysplit 4
 
 SLEEP 2
@@ -34,3 +34,21 @@ fg %2
 
 /bin/echo tsh> jobs
 jobs
+
+/bin/echo tsh> ./mystop 1
+./mystop 1
+
+/bin/echo tsh> ./mystop 1 \046
+./mystop 1 &
+
+/bin/echo tsh> ./mystop 1
+./mystop 1
+
+/bin/echo tsh> ./mystop 1 \046
+./mystop 1 &
+
+/bin/echo tsh> jobs
+jobs
+
+
+
