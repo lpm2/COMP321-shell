@@ -186,10 +186,10 @@ void
 eval(char *cmdline) 
 {
 
-	/* string array to store command line arguments */
-	char **argv = malloc(sizeof(char **));
 	int bg_job;	/* whether the job is to run in the background */
 	int pid;	/* the process id returned from fork */
+	/* string array to store command line arguments */
+	char **argv = malloc(sizeof(char **));	
 	
 	bg_job = parseline(cmdline, argv);
 	
@@ -208,7 +208,6 @@ eval(char *cmdline)
 		 * signal then execute
 		 */
 		if ((pid = fork()) == 0) {
-			
 			setpgid(0, 0);
 			if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
 				unix_error("Problem unblocking SIGCHLD!");			
@@ -263,11 +262,12 @@ eval(char *cmdline)
 int
 parseline(const char *cmdline, char **argv) 
 {
+
+	int argc;                   /* number of args */
+	int bg;                     /* background job? */
 	static char array[MAXLINE]; /* holds local copy of command line */
 	char *buf = array;          /* ptr that traverses command line */
 	char *delim;                /* points to first space delimiter */
-	int argc;                   /* number of args */
-	int bg;                     /* background job? */
 
 	strcpy(buf, cmdline);
 	buf[strlen(buf) - 1] = ' '; /* Replace trailing '\n' with space. */
@@ -368,9 +368,9 @@ do_bgfg(char **argv)
 		return;
 	}
 	
-	char pj_id_flag = 3;
-	int pid;
 	JobP bgfgJob;
+	int pid;
+	char pj_id_flag = 3;
 
 	if (argv[1][0] != '%') {
 		pid = atoi(argv[1]);
@@ -379,8 +379,8 @@ do_bgfg(char **argv)
 			pj_id_flag = 0;
 	}
 	else {
+		char *ret;
 		const char ch = '%';
-   		char *ret;
    		ret = strchr(argv[1], ch);
 		int jid = atoi(ret+1);
 		bgfgJob = getjobjid(jobs, jid);
@@ -426,6 +426,8 @@ waitfg(pid_t pid)
 
 	/* Sleep while the given process is still active in the foreground */
 	while (fgpid(jobs) == pid) {
+		if (verbose)
+			printf("Sleeping...\n");
 		sleep(1);
 	}
 }
@@ -443,60 +445,12 @@ waitfg(pid_t pid)
 void
 initpath(char *pathstr)
 {
-	assert(pathstr != NULL);
-// 
-// 	if (pathstr == NULL) {
-// 		printf("The path string is null\n");
-// 	}
-// 	if (verbose) {
-// 		printf("In initpath!\n");
-// 		printf("%s\n", pathstr);	
-// 	}
-// 	/* Linked list of directories on the path */
-// 	struct path *cur_dir = env_path; 
-// 	char *token;		/* holds a single directory from the path */
-// 	
-// 	/* A copy of the pathstr since strsep modifies its input directly */
-// 	char *token_path = malloc(sizeof(char) * strlen(pathstr) + 1);
-// 	printf("%lu\n", strlen(pathstr));
-// 	//token_path[sizeof(char) * strlen(pathstr)] = "\0";
-// 	/* Whether or not the current directory is specified on the PATH */
-// 	bool add_cur_dir = false;
-// 	
-// 	strcpy(token_path, pathstr);
-// 
-// 	printf("%s\n", token_path);
-// 	printf("%c\n", *(token_path+1));
-// 	printf("Good\n");
-// 	/* Check whether the current directory is on the path at the start */
-// 	if (token_path[0] == ':') {
-// 		token_path++;
-// 		add_cur_dir = true;
-// 	}
-// 	
-// 	/* Split the path by ":" and add the resulting strings to the list */
-// 	while ((token = strsep(&token_path, ":")) != NULL) {
-// 		
-// 		cur_dir = malloc(sizeof(struct path *));
-// 		cur_dir->dir = token;
-// 		cur_dir = cur_dir->next;
-// 		
-// 		/* Skip over consecutive ":" */
-// 		if (token_path[0] == ':') {
-// 			token_path++;
-// 			add_cur_dir = true;
-// 		}
-// 	}
-// 	
-// 	/* Add the current directory to the list if it was specified */
-// 	if (strcmp(pathstr, "") == 0 || pathstr[strlen(pathstr)] == ':' ||
-// 	 add_cur_dir) {
-// 	 	cur_dir = malloc(sizeof(struct path *));
-// 		cur_dir->dir = ".";
-// 	}
-// 	
-// 	free(token_path);
-	
+	if (verbose) {
+		if (pathstr == NULL) 
+			printf("Warning: Path is NULL!\n");
+		else
+			printf("Path= %s\n", pathstr);		
+	} 	
 	return;
 }
 
@@ -514,10 +468,9 @@ initpath(char *pathstr)
 void
 sigchld_handler(int sig) 
 {
-	char str[SIG2STR_MAX]; //sigmaxline array
-	sig2str(sig, str);
 	pid_t pid;
 	int status;
+	char str[SIG2STR_MAX]; //sigmaxline array
 
 	if (sig == SIGCHLD) {
 		
@@ -555,17 +508,22 @@ sigchld_handler(int sig)
 void
 sigint_handler(int sig) 
 {	
-	assert(sig == SIGINT);
-	
+	if (sig != SIGINT) {
+		if (verbose)
+			printf("Error: SIGINT not received!\n");
+	}
+	else {
+		pid_t fg_pid = fgpid(jobs);
+		if (!fg_pid) {
+			if (verbose)
+				printf("Error: No such job to STOP!\n");
+			return;
+		}
 
-	pid_t fg_pid = fgpid(jobs);
-	if (!fg_pid)
-		return;
-
-	JobP fgJob = getjobpid(jobs, fg_pid);
-	if (fgJob == NULL || kill(-fgJob->pid, sig) == -1)
-		unix_error("Unable to forward SIGINT!\n");
-
+		JobP fgJob = getjobpid(jobs, fg_pid);
+		if (fgJob == NULL || kill(-fgJob->pid, sig) == -1)
+			unix_error("Unable to forward SIGINT!\n");
+	}
 	
 	return;
 }
@@ -578,16 +536,22 @@ sigint_handler(int sig)
 void
 sigtstp_handler(int sig) 
 {
-	assert(sig == SIGTSTP);
-	
-	pid_t fg_pid = fgpid(jobs);
-	if (!fg_pid)
-		return;
+	if (sig != SIGTSTP) {
+		if (verbose)
+			printf("Error: SIGTSTP not received!\n");
+	}
+	else {
+		pid_t fg_pid = fgpid(jobs);
+		if (!fg_pid) {
+			if (verbose)
+				printf("Error: No such job to STOP!\n");
+			return;
+		}
 
-	JobP fgJob = getjobpid(jobs, fg_pid);	
-	if (fgJob == NULL || kill(-fgJob->pid, sig) == -1)
-		unix_error("Unable to forward SIGTSTP!\n"); 
-	
+		JobP fgJob = getjobpid(jobs, fg_pid);	
+		if (fgJob == NULL || kill(-fgJob->pid, sig) == -1)
+			unix_error("Unable to forward SIGTSTP!\n"); 
+	}
 	return;
 }
 
