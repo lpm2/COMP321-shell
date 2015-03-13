@@ -1,0 +1,28 @@
+#
+# trace13.txt - Create too many jobs
+#
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+./myspin 20 &
+
+
+
