@@ -95,7 +95,11 @@ static handler_t *Signal(int signum, handler_t *handler);
 /*
  * main - The shell's main routine 
  *
- * Reads in user input from the command line
+ * Reads in user input from the command line and evaluates
+ * said inputs. Valid command line inputs include built-in commands,
+ * paths to executable files, and the names of executable files on the 
+ * search path, in addition to CTRL-C and CTRL-Z for terminating and
+ * stopping foreground processes respectively
  */
 int
 main(int argc, char **argv) 
