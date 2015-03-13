@@ -95,7 +95,7 @@ static handler_t *Signal(int signum, handler_t *handler);
 /*
  * main - The shell's main routine 
  *
- * <???>
+ * Reads in user input from the command line
  */
 int
 main(int argc, char **argv) 
@@ -511,7 +511,7 @@ sigchld_handler(int signum)
 	int status;	/* the status of waitpid */
 
 	/* make sure the given signal is a SIGCHLD signal */
-	if (sig == SIGCHLD) {
+	if (signum == SIGCHLD) {
 		
 		/* Handle reaping of all terminated child and handle
 		 * stopped children
