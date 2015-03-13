@@ -1,13 +1,29 @@
-Xin Huang
-Leo Meister
+Xin Huang 	xyh1
+Leo Meister	lpm2
 COMP 321 Project 4: Unix Shell
 3/12/15
 
 DESCRIPTION
 
-<insert a brief description of your solution (i.e., a short synopsis
-of what the application does from the persepective of someone who
-would use it).>
+We designed a shell with limited functionality compared to shells like bash and csh. It is capable of running four built-in commands (quit, bg, fg, and jobs), as well as executable files. The command "quit" exits out of the shell, "bg" runs a given stopped command in the background, "fg" runs a given background or stopped command in the foreground, and jobs lists the jobs currently running. 
+
+The shell will execute an executable file as long as the path to the executable is provided as the first argument on the command line or the path to the executable is on the search path (PATH environment variable). Jobs will be run in the background if the command ends with "&"
+
+Examples:
+
+//This will execute assuming the echo executable is in the bin directory
+tsh> /bin/echo your string here
+
+or
+
+//This will execute assuming /bin/echo is in the PATH environment variable
+tsh> echo your string here
+
+//This will run the "foo" in the background
+tsh> ./foo &
+
+
+Typing CTRL-z will suspend the job running in the foreground, and typing CTRL-c will terminate any job running in the foreground. If any job is stopped or terminated by a signal, a message will display with the job id, process id, and command line arguments of that job.
 
 DESIGN
 
