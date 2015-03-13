@@ -193,19 +193,23 @@ eval(char *cmdline)
 	
 	bg_job = parseline(cmdline, argv);
 	
-
+	/* If nothing is entered, don't evaluate */
 	if (argv[0] == NULL)
 		return;
-
+	/* Run the command if it is builtin, otherwise execute
+	 * the executable specified by the first argument
+	 */
 	else if (!builtin_cmd(argv)) {
+		
 		/* Block sigchld signals in the parent */
 		sigset_t mask;
 		sigemptyset(&mask);
 		sigaddset(&mask, SIGCHLD);
 		sigprocmask(SIG_BLOCK, &mask, NULL);
 					
-		/* add the child to the jobs list, unblock the SIGCHLD 	
-		 * signal then execute
+		/* fork a child process to run the job, setting its groupd id,
+		 * unblocking the sig_child signal, and using execvp to
+		 * search the search path if necessary
 		 */
 		if ((pid = fork()) == 0) {
 			
@@ -218,6 +222,10 @@ eval(char *cmdline)
 			}
 		}
 
+		/* In the parent process (the child terminates after the
+		 * execvp call), add the job to the background or foreground
+		 * as appropriate and then unblocking the child signal.
+		 */
 		if (bg_job) {
 			if (!addjob(jobs, pid, BG, cmdline)) {
 				if (verbose)
@@ -227,7 +235,8 @@ eval(char *cmdline)
 			}
 			if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
 				unix_error("Problem unblocking SIGCHLD!");
-			printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, cmdline);
+			printf("[%d] (%d) %s", getjobpid(jobs, pid)->jid, pid, 
+			    cmdline);
 		} // end if
 		else {
 			if (!addjob(jobs, pid, FG, cmdline)) {
@@ -443,7 +452,7 @@ waitfg(pid_t pid)
 void
 initpath(char *pathstr)
 {
-	assert(pathstr != NULL);
+	return;
 // 
 // 	if (pathstr == NULL) {
 // 		printf("The path string is null\n");
@@ -497,7 +506,6 @@ initpath(char *pathstr)
 // 	
 // 	free(token_path);
 	
-	return;
 }
 
 /*****************
