@@ -1,6 +1,7 @@
-<insert name(s)>
+Xin Huang
+Leo Meister
 COMP 321 Project 4: Unix Shell
-<insert date turned in>
+3/12/15
 
 DESCRIPTION
 
@@ -15,9 +16,29 @@ made, such as data structures, algorithms, etc.>
 
 TESTING STRATEGY
 
-<insert a detailed description of your testing strategy: at a minimum
-you should explain how you tested your code, how you selected your
-inputs, and why that selection is sufficient to test your code.>
-
-ran bg and fg without arguments
-ran bg and fg with invalid pid / jid number and invalid arguments
+Again our testing strategy was pretty manual, as we had to check our 
+implementation of tsh against the reference. For our simple tests, we ran tsh
+and tshref through all the provided trace files and made sure that the output
+of our tsh matched the output of the provided tshref. We also ran the provided 
+functions of mystop, myspin, myint, etc and made sure those were working to 
+spec with the reference as well. Then we tested the commands in the trace 
+files and c files manually in our tsh to make sure they were working
+when typed into the shell too. We then tested other commands such as ls, ps, 
+and echo and made sure that the expected output was received. We then 
+extensively tested the built in functions we wrote, especially "bg" and "fg"
+as "quit" and "jobs" was not as complex. We ran bg and fg without arguments 
+and also ran bg and fg with invalid pid / jid numbers and invalid string
+arguments. We matched the reference invalid prints. Then we ran the the 
+provided c programs in our tsh in both the foreground and background, stopped 
+them with keyboard interrupts and stops to first make sure they would 
+terminate or quit. Then we restarted the programs in all combinations of the 
+background and foreground process. By now, we were sure our built in functions
+were working properly, as well our error messages, and signal interrupts. So
+we decided to test what would happen if we gave our shell an empty path, and 
+found that that worked to spec as well as it would take the current directory
+as the path and was able to run programs in the current directory without a
+a path. With that tested, we were pretty confident that our shell was working
+and we made a few extra trace files that were essentially longer combinations
+of a few of the provided trace files and programs. We tested our own created 
+trace files and confirmed they were able to complete and terminate in both 
+our tsh and the tshref.
