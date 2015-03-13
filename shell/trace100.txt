@@ -1,7 +1,7 @@
 #
 # trace100.txt - Process lots of commands
 #
-/bin/echo tsh> ./myspin 4 \046
+/bin/echo tsh> ./myspin 4 &
 ./myspin 4 &
 
 SLEEP 1
@@ -38,13 +38,13 @@ jobs
 /bin/echo tsh> ./mystop 1
 ./mystop 1
 
-/bin/echo tsh> ./mystop 1 \046
+/bin/echo tsh> ./mystop 1 &
 ./mystop 1 &
 
 /bin/echo tsh> ./mystop 1
 ./mystop 1
 
-/bin/echo tsh> ./mystop 1 \046
+/bin/echo tsh> ./mystop 1 &
 ./mystop 1 &
 
 SLEEP 10
@@ -82,7 +82,7 @@ SLEEP 2
 /bin/echo tsh> jobs
 jobs
 
-/bin/echo tsh> ./myspin 5 \046
+/bin/echo tsh> ./myspin 5 &
 ./myspin 5 &
 
 SLEEP 1
@@ -124,7 +124,7 @@ fg %3
 /bin/echo tsh> fg %1
 fg %1
 
-/bin/echo >>>>>Confirm: No such job
+/bin/echo >>>>> Confirm: No such job
 
 /bin/echo tsh> bg 00012
 bg 00012
@@ -132,7 +132,7 @@ bg 00012
 /bin/echo tsh> bg 000000
 bg 000000
 
-/bin/echo >>>>>Confirm: No such process
+/bin/echo >>>>> Confirm: No such process
 
 /bin/echo tsh> bg asdgasdg
 bg asdgasdg
@@ -140,12 +140,12 @@ bg asdgasdg
 /bin/echo tsh> fg !!@#!@#
 bg !!@#!@#
 
-/bin/echo >>>>>Confirm: argument must be a PID or %jobid
+/bin/echo >>>>> Confirm: argument must be a PID or %jobid
 
 /bin/echo tsh> jobs
 jobs
 
-/bin/echo >>>>>Confirm: No output ""
+/bin/echo >>>>> Confirm: No output ""
 
 
 
