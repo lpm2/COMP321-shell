@@ -1,0 +1,36 @@
+#
+# trace100.txt - Process lots of commands
+#
+/bin/echo tsh> ./myspin 4 \046
+./myspin 4 &
+
+SLEEP 1
+/bin/echo tsh> fg %1
+fg %1
+
+SLEEP 1
+TSTP
+
+/bin/echo tsh> jobs
+jobs
+
+/bin/echo tsh> ./myspin 4 \046
+./mysplit 4
+
+SLEEP 2
+TSTP
+
+/bin/echo tsh> jobs
+jobs
+
+/bin/echo tsh> fg %1
+fg %1
+
+/bin/echo tsh> jobs
+jobs
+
+/bin/echo tsh> fg %2
+fg %2
+
+jobs
+
