@@ -86,13 +86,13 @@ TSTP
 /bin/echo tsh> ./myspin 4
 ./myspin 4
 
-SLEEP1
+SLEEP 1
 TSTP
 
 /bin/echo tsh> fg %1
 fg %1
 
-SLEEP1
+SLEEP 1
 TSTP
 
 /bin/echo tsh> bg %2
@@ -101,13 +101,13 @@ bg %2
 /bin/echo tsh> bg %1
 bg %1
 
-SLEEP1
+SLEEP 1
 TSTP
 
 /bin/echo tsh> fg %1
 fg %1
 
-SLEEP1
+SLEEP 1
 INT
 
 /bin/echo tsh> jobs
