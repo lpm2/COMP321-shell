@@ -27,43 +27,35 @@ Typing CTRL-z will suspend the job running in the foreground, and typing CTRL-c 
 
 DESIGN
 
-For our the built-in commands of our shell, we used strcmp to check the if the
-first argument given was any of the 4 built in commands and if any of them
-were matched, we would run the appropriate function, either listjobs, exit, or
-do_bgfg. For do_bgfg, we had a few corner case error/invalid print statements 
+For the built-in commands of our shell, we used strcmp to check whether the
+first argument given was any of the 4 built in commands. If any of them
+were matched, we would run the appropriate function (either listjobs, exit, or
+do_bgfg). For do_bgfg, we had a few corner case error/invalid print statements 
 to take care of, so we created a flag that gets set depending on whether the 
-argument passed was a pid, jid, or invalid, so we can print the appropriate 
-message in line with what the reference passes. Our Signal interrupt and stop
-were pretty similar in design as we first checked if the provided command was 
-valid and then we check to make sure the pid of the job we're stopping or 
-terminating is valid. Otherwise if everything is valid, the sigchild handler 
-effectively handles the actual operations of the stop and terminate.
+argument passed was a pid, jid, or invalid. This way we could print the appropriate message based on the second argument to bg and fg.
+
+Our Signal interrupt and stop handlers were pretty similar in design; we first check whether the provided command is valid, and then we check to make sure the pid of the job we are stopping or terminating is valid. If it is valid, it forwards the signal to the appropriate foreground job, which then invokes the sig_chld handler. The child handler reaps terminated children, gets the status of terminated and stopped children, accordingly deletes terminated jobs, changes the state of the stopped children, and prints messages concerning uncaught signals.
+
+We used initpath solely for verbose debugging statements, since we chose to use execvp when executing commands; execvp will search the PATH environment variable if the provided filename does not include a path. In eval, we made sure to block the SIGCHLD signal in the parent until after the job is added to the list so that the we don't try to delete a job until after it is added. In addition, we made sure to unblock SIGCHLD before the call to execvp from the child so it would terminate.
+
+Our waitfg function simply checks to see whether the input process id is the the id of the current foreground job. While it is, it sleeps; once it terminates and is handled (removed from the list), the loop breaks and the shell resumes allowing input.
+
+To handle the case where the user does not input anything to the shell apart from hitting enter, we check whether the first argument is null. If it is, we do not need to evaluate the input. The major difference between foreground and background jobs was the state we passed to the addjob function to add the job to the job list and the fact that we needed to wait for the foreground job to complete.
 
 TESTING STRATEGY
 
-Again our testing strategy was pretty manual, as we had to check our 
-implementation of tsh against the reference. For our simple tests, we ran tsh
-and tshref through all the provided trace files and made sure that the output
-of our tsh matched the output of the provided tshref. We also ran the provided 
-functions of mystop, myspin, myint, etc and made sure those were working to 
-spec with the reference as well. Then we tested the commands in the trace 
-files and c files manually in our tsh to make sure they were working
-when typed into the shell too. We then tested other commands such as ls, ps, 
-and echo and made sure that the expected output was received. We then 
-extensively tested the built in functions we wrote, especially "bg" and "fg"
-as "quit" and "jobs" was not as complex. We ran bg and fg without arguments 
-and also ran bg and fg with invalid pid / jid numbers and invalid string
-arguments. We matched the reference invalid prints. Then we ran the the 
-provided c programs in our tsh in both the foreground and background, stopped 
-them with keyboard interrupts and stops to first make sure they would 
-terminate or quit. Then we restarted the programs in all combinations of the 
-background and foreground process. By now, we were sure our built in functions
-were working properly, as well our error messages, and signal interrupts. So
-we decided to test what would happen if we gave our shell an empty path, and 
-found that that worked to spec as well as it would take the current directory
-as the path and was able to run programs in the current directory without a
-a path. With that tested, we were pretty confident that our shell was working
-and we made a few extra trace files that were essentially longer combinations
-of a few of the provided trace files and programs. We tested our own created 
-trace files and confirmed they were able to complete and terminate in both 
-our tsh and the tshref.
+Our testing strategy was largely manual as we manually compared the output of the traces for our tsh against the reference shell.
+For simple tests, we ran tsh and tshref through all the provided trace files and made sure that the output of our tsh matched the output of the provided tshref (apart from process ids).
+
+We also ran the provided functions mystop, myspin, myint, and mysplit to make sure they worked and produced the same output as the reference shell. Then we tested the commands in the trace files and c files manually in our tsh to make sure they were working when typed into the shell too, since we found that the behavior varied in our tsh when using the driver as compared to manually testing the tsh; this was a cause of bugs in our signal handlers.
+We then tested other commands such as ls, ps, and echo - commands we expected to be on the search path - and compared the output of our tsh with the reference shell.
+
+After, we extensively tested the built in functions we wrote, especially "bg" and "fg," as "quit" and "jobs" was not as complex. We ran bg and fg without arguments and also with invalid pid / jid numbers and invalid string
+arguments, ensuring that we matched the reference invalid messages. 
+
+We also ran the provided c programs in our tsh in both the foreground and background, stopped them with keyboard interrupts and stops to first make sure they would terminate and quit properly. Then we restarted the programs in all combinations of the background and foreground process. Doing so, we were sure that our built-in functions were working properly, along with our error messages and signal interrupts.
+
+We also needed to test what would happen if we gave our shell an empty path, so we ran "env PATH= ./tsh", finding that it worked to spec; it would take the current directory as the path and was able to run programs in the current directory with only the name of the executable provided. In addition, we did tested commands like echo that were on our path before, and the "Command not found" message displayed as appropriate.
+
+We made a few extra trace files to test various combinations of built-in commands, signals, and executables. We tested our own created 
+trace files and confirmed they produced the same output in both our shell and the reference, which led us to believe that our code was functioning properly.
