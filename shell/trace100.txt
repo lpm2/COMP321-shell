@@ -47,7 +47,7 @@ jobs
 /bin/echo tsh> ./mystop 1 \046
 ./mystop 1 &
 
-SLEEP 5
+SLEEP 10
 
 /bin/echo tsh> jobs
 jobs
@@ -58,7 +58,7 @@ bg %1
 /bin/echo tsh> fg %2
 fg %2
 
-SLEEP 2
+SLEEP 4
 
 /bin/echo tsh> jobs
 jobs
@@ -69,10 +69,15 @@ bg %3
 /bin/echo tsh> fg %4
 fg %4
 
+SLEEP 4
+
+/bin/echo tsh> jobs
+jobs
+
 /bin/echo tsh> ./myint 1
 ./myint 1
 
-SLEEP 1
+SLEEP 2
 
 /bin/echo tsh> jobs
 jobs
