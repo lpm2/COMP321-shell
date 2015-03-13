@@ -473,7 +473,7 @@ waitfg(pid_t pid)
  *   No preprocessing required because of the use of execvp
  */
 static void
-initpath(char *pathstr)
+initpath(const char *pathstr)
 {	
 	if (verbose) {
 		if (pathstr == NULL) 
@@ -507,11 +507,12 @@ initpath(char *pathstr)
 static void
 sigchld_handler(int signum)
 {
+	assert(signum == SIGCHLD);
 	pid_t pid;	/* the process id of the foreground process */
 	int status;	/* the status of waitpid */
 
 	/* make sure the given signal is a SIGCHLD signal */
-	if (sig == SIGCHLD) {
+	if (signum == SIGCHLD) {
 		
 		/* Handle reaping of all terminated child and handle
 		 * stopped children
@@ -547,7 +548,7 @@ sigchld_handler(int signum)
 		}
 	}
 
-	return;assert(signum == SIGCHLD);
+	return;
 }
 
 /* 
