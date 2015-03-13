@@ -124,7 +124,7 @@ fg %3
 /bin/echo tsh> fg %1
 fg %1
 
-/bin/echo Confirm No Such Job
+/bin/echo >>>>>Confirm: No such job
 
 /bin/echo tsh> bg 00012
 bg 00012
@@ -132,7 +132,7 @@ bg 00012
 /bin/echo tsh> bg 000000
 bg 000000
 
-/bin/echo Confirm No Such Process
+/bin/echo >>>>>Confirm: No such process
 
 /bin/echo tsh> bg asdgasdg
 bg asdgasdg
@@ -140,12 +140,12 @@ bg asdgasdg
 /bin/echo tsh> fg !!@#!@#
 bg !!@#!@#
 
-/bin/echo Confirm Not Valid Input
+/bin/echo >>>>>Confirm: argument must be a PID or %jobid
 
 /bin/echo tsh> jobs
 jobs
 
-/bin/echo Confirm No Output
+/bin/echo >>>>>Confirm: No output ""
 
 
 
