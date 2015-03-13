@@ -17,7 +17,11 @@ were matched, we would run the appropriate function, either listjobs, exit, or
 do_bgfg. For do_bgfg, we had a few corner case error/invalid print statements 
 to take care of, so we created a flag that gets set depending on whether the 
 argument passed was a pid, jid, or invalid, so we can print the appropriate 
-message in line with what the reference passes.
+message in line with what the reference passes. Our Signal interrupt and stop
+were pretty similar in design as we first checked if the provided command was 
+valid and then we check to make sure the pid of the job we're stopping or 
+terminating is valid. Otherwise if everything is valid, the sigchild handler 
+effectively handles the actual operations of the stop and terminate.
 
 TESTING STRATEGY
 
