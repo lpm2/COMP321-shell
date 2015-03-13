@@ -46,6 +46,8 @@ test11:
 	$(DRIVER) -t trace11.txt -s $(TSH) -a $(TSHARGS)
 test12:
 	$(DRIVER) -t trace12.txt -s $(TSH) -a $(TSHARGS)
+test13:
+	$(DRIVER) -t trace13.txt -s $(TSH) -a $(TSHARGS)
 test100:
 	$(DRIVER) -t trace100.txt -s $(TSH) -a $(TSHARGS)
 
@@ -74,6 +76,8 @@ rtest11:
 	$(DRIVER) -t trace11.txt -s $(TSHREF) -a $(TSHARGS)
 rtest12:
 	$(DRIVER) -t trace12.txt -s $(TSHREF) -a $(TSHARGS)
+rtest13:
+	$(DRIVER) -t trace13.txt -s $(TSHREF) -a $(TSHARGS)
 rtest100:
 	$(DRIVER) -t trace100.txt -s $(TSHREF) -a $(TSHARGS)
 
