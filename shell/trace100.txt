@@ -47,7 +47,7 @@ jobs
 /bin/echo tsh> ./mystop 1 \046
 ./mystop 1 &
 
-SLEEP 2
+SLEEP 5
 
 /bin/echo tsh> jobs
 jobs
